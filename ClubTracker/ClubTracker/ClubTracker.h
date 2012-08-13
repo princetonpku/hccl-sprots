@@ -1,7 +1,6 @@
 #pragma once
 
 #include <opencv2/opencv.hpp>
-#include <opencv2/gpu/gpu.hpp>
 #include <fstream>
 
 #define USING_SINTEF
@@ -12,6 +11,7 @@
 #include <GoTools/creators/SmoothCurve.h>
 #endif
 
+#include "LineSegment.h"
 
 class CalibClass;
 
@@ -167,16 +167,15 @@ private:
 
 	// 2D tracking functions
 	void Tracking2Dimg(const std::vector<cv::Mat>& img_buffer, std::vector<std::vector<cv::Vec4f>>& line_buffer, const int frame);
-	void GpuTracking2Dimg(const std::vector<cv::Mat>& img_buffer, std::vector<std::vector<cv::Vec4f>>& line_buffer, const int frame);	
 	std::vector<std::vector<cv::Point>> GetContour(const cv::Mat& img_buffer, const int thr, const int max_siz = 7);
-	std::vector<std::vector<cv::Point>> GpuGetContour(const cv::gpu::GpuMat& img_buffer, const int thr, const int max_siz = 7);	
 	cv::Mat GetMotionMask(const cv::Mat& img, const cv::Mat& img_before, const cv::Mat& img_after, int t, int n1, int n2);
-	cv::gpu::GpuMat GpuGetMotionMask(const cv::gpu::GpuMat& img, const cv::gpu::GpuMat& img_before, const cv::gpu::GpuMat& img_after, int t, int n1, int n2);
 	cv::Mat distanceInColorsplace(const cv::Mat& m1, const cv::Mat& m2);
-	cv::gpu::GpuMat GpudistanceInColorsplace(const cv::gpu::GpuMat& m1, const cv::gpu::GpuMat& m2);
 	std::vector<cv::Vec4f> lineGroupping( const std::vector<cv::Vec4i>& lines, const float anglethr, const float distthr1, const float distthr2, bool debug = false );
 	std::vector<cv::Vec4f> lineGroupping2( const std::vector<cv::Vec4i>& lines, const float anglethr, const float distthr1, const float distthr2, bool debug = false );
 	std::vector<cv::Vec4f> lineGroupping3( const std::vector<cv::Vec4i>& lines, const float anglethr, const float distthr1, const float distthr2, bool debug = false );
+	std::vector<LineSegment2Df> MeargingSegment(const std::vector<LineSegment2Df>& input);
+	LineSegment2Df PairingSegment(const std::vector<LineSegment2Df>& input);
+
 	cv::Vec4f getMiddleLine( const cv::Vec4f* lines );
 	void modelAdjust(cv::Mat& model, const cv::Vec4f& l1, const cv::Vec4f& l2);
 	void getIntersection(const cv::Mat& model, const std::vector<cv::Vec4f>& lines, const std::vector<float>& para, cv::Mat& data);
@@ -222,9 +221,6 @@ private:
 
 	std::vector<cv::Mat> VariableOptimization(const std::vector<cv::Mat>& img_buffer, const int frame, bool debug = false);
 	std::vector<cv::Mat> VariableOptimization2( const std::vector<cv::Mat>& img_buffer, const int frame, bool debug = false );
-
-	std::vector<cv::Mat> GpuVariableOptimization(const std::vector<cv::Mat>& img_buffer, const int frame);
-
 
 	// Smoothing function
 	double myFunctionup(const std::vector<double>& upt, const std::vector<int>& upindx, CalibClass& calib);

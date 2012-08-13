@@ -2,7 +2,8 @@
 #include "CalibClass.h"
 #include "Imgprocessing.h"
 #include "ShortestPath.h"
-#include "LineSegment.h"
+
+#include "LSWMS.h"
 
 using namespace cv;
 using namespace std;
@@ -331,112 +332,6 @@ void ClubTracker::Tracking2Dimg( const std::vector<cv::Mat>& img_buffer, std::ve
 	}
 }
 
-void ClubTracker::GpuTracking2Dimg( const std::vector<cv::Mat>& img_buffer, std::vector<std::vector<cv::Vec4f>>& line_buffer, const int frame )
-{
-	Size img_sz = img_buffer[0].size();
-	gpu::GpuMat imgs[3], yuv[3], msk, msked;
-
-	// get the motion mask and masked img=======================================
-	imgs[0].upload(img_buffer[frame]);
-	if (frame == 0)
-	{
-		imgs[1].upload(img_buffer[frame+1]);
-		imgs[2].upload(img_buffer[frame]);
-	}
-	else if (frame == num_frame-1)
-	{
-		imgs[1].upload(img_buffer[frame-1]);
-		imgs[2].upload(img_buffer[frame]);
-	}
-	else
-	{
-		imgs[1].upload(img_buffer[frame-1]);
-		imgs[2].upload(img_buffer[frame+1]);
-	}
-
-	for (int i = 0; i<3; ++i)
-		gpu::cvtColor(imgs[i], yuv[i], CV_BGR2YUV);	
-
-
-// 	Mat temimgs[3];
-// 	for (int i = 0; i<3; ++i)
-// 	{
-// 		yuv[i].download(temimgs[i]);
-// 	}
-// 	Mat msktem = GetMotionMask(temimgs[0],temimgs[1], temimgs[2], coef_threshold, coef_num_errod, coef_num_dilt);
-
-
-	msk = GpuGetMotionMask(yuv[0], yuv[1], yuv[2], coef_threshold, coef_num_errod, coef_num_dilt);
-	Mat msktem;
-	msk.download(msktem);
-	int gsiz = gauss_siz*2+1;
-	GaussianBlur(msktem, msktem, Size(gsiz,gsiz), gauss_sig);
-
-	vector<vector<Point>> contours = GetContour(msktem, contour_threshold);
-
-	vector<vector<Point>> new_contours;
-	new_contours.reserve(contours.size());
-
-	vector<vector<cv::Vec4i>> new_lines;
-	new_lines.reserve(contours.size());
-
-	for (int i = 0; i<contours.size(); ++i)
-	{
-		// approximate contour into polygon
-		vector<Point> approx;
-		//approxPolyDP(Mat(contours[i]), approx, arcLength(Mat(contours[i]), true)*coef_contour_approx*0.001, true);
-		approx = contours[i];
-
-		// drawing approximated contour
-		Mat tem(img_sz.height, img_sz.width, CV_8UC1, Scalar(0));
-		drawVector(tem, approx, Scalar(255), 1, false);
-
-		// get bounding rect of contour
-		Rect roi_Rect = boundingRect(Mat(approx));
-		Mat roi(tem, roi_Rect);
-		Point shift_pt(roi_Rect.x, roi_Rect.y);
-
-		// perform hough transform
-		vector<cv::Vec4i> lin;
-		HoughLinesP(roi, lin, 1, CV_PI/180, hough_threshold, hough_minlangth, hough_maxgap);
-
-		if (lin.size()>1)
-		{
-			new_contours.push_back(approx);
-
-			vector<Vec4i> tem(lin.size(), Vec4i(shift_pt.x, shift_pt.y, shift_pt.x, shift_pt.y));
-			new_lines.push_back(Mat(Mat(lin)+Mat(tem)));
-		}
-	}
-
-	vector<vector<Vec4f>> new_lines2;
-	new_lines2.reserve(new_lines.size());
-	for (int i = 0; i<new_lines.size(); ++i)
-	{
-		vector<Vec4f> tem = lineGroupping(new_lines[i], anglethr, distnthr1, distnthr2);
-		if (tem.size()>0) new_lines2.push_back(tem);
-	}
-
-	line_buffer[frame].clear();
-	for (int i = 0; i<new_lines2.size(); ++i)
-	{
-		for (int j = 0; j<new_lines2[i].size(); ++j)
-		{
-			Point2f p1(new_lines2[i][j][0], new_lines2[i][j][1]);
-			Point2f p2(new_lines2[i][j][3], new_lines2[i][j][2]);
-
-			if (norm(p1-img_center)<norm(p2-img_center))
-			{
-				line_buffer[frame].push_back(new_lines2[i][j]);
-			}
-			else
-			{
-				line_buffer[frame].push_back(Vec4i(new_lines2[i][j][2], new_lines2[i][j][3], new_lines2[i][j][0], new_lines2[i][j][1]));
-			}
-		}		
-	}
-
-}
 std::vector<std::vector<cv::Point>> ClubTracker::GetContour( const cv::Mat& img_buffer, const int thr, const int max_siz /*= 7*/ )
 {
 	vector<vector<Point>> contour;
@@ -491,31 +386,6 @@ cv::Mat ClubTracker::GetMotionMask(const cv::Mat& img, const cv::Mat& img_before
 
 	return msk;
 }
-cv::gpu::GpuMat ClubTracker::GpuGetMotionMask( const cv::gpu::GpuMat& img, const cv::gpu::GpuMat& img_before, const cv::gpu::GpuMat& img_after, int t, int n1, int n2 )
-{
-	gpu::GpuMat tem1, tem2, msk;
-	tem1 = GpudistanceInColorsplace(img, img_before);
-	tem2 = GpudistanceInColorsplace(img, img_after);
-
-	gpu::threshold(tem1, tem1, t, 255, CV_THRESH_BINARY);
-	tem1.convertTo(tem1, CV_8UC1);	
-	gpu::erode(tem1, tem1, Mat(), Point(-1,-1), n1);
-	gpu::dilate(tem1, tem1, Mat(), Point(-1,-1), n1+1);
-	gpu::erode(tem1, tem1, Mat(), Point(-1,-1), 1);
-
-	gpu::threshold(tem2, tem2, t, 255, CV_THRESH_BINARY);
-	tem2.convertTo(tem2, CV_8UC1);
-	gpu::erode(tem2, tem2, Mat(), Point(-1,-1), n1);
-	gpu::dilate(tem2, tem2, Mat(), Point(-1,-1), n1+1);
-	gpu::erode(tem2, tem2, Mat(), Point(-1,-1), 1);	
-
-	gpu::bitwise_and(tem1, tem2, msk);
-
-	gpu::dilate(msk, msk, cv::Mat(), cv::Point(-1,-1), 1);
-	gpu::erode(msk, msk, cv::Mat(), cv::Point(-1,-1), 1);
-
-	return msk;
-}
 cv::Mat ClubTracker::distanceInColorsplace(const cv::Mat& m1, const cv::Mat& m2)
 {
 	cv::Mat tem, splt[3], rslt;
@@ -530,30 +400,6 @@ cv::Mat ClubTracker::distanceInColorsplace(const cv::Mat& m1, const cv::Mat& m2)
 		w3 = 0.4;
 
 	rslt = w1*splt[0] + w2*splt[1] + w3*splt[2];
-
-	return rslt;
-}
-cv::gpu::GpuMat ClubTracker::GpudistanceInColorsplace( const cv::gpu::GpuMat& m1, const cv::gpu::GpuMat& m2 )
-{
-	cv::gpu::GpuMat tem, splt[3], rslt, sub, absmat, mulmat;
-	gpu::subtract(m1, m2, sub);
-	sub.convertTo(tem, CV_32FC3);	
-//  	gpu::abs(tem, absmat);	
-		
-	gpu::multiply(absmat, absmat, mulmat);	
-	gpu::split(mulmat, splt);
-
-	float w1 = 0.2,
-		w2 = 0.4,
-		w3 = 0.4;
-
-	gpu::GpuMat t1, t2, t3, t;
-	gpu::multiply(splt[0], Scalar(w1), t1);
-	gpu::multiply(splt[1], Scalar(w2), t2);
-	gpu::multiply(splt[2], Scalar(w3), t3);
-
-	gpu::add(t1, t2, t);
-	gpu::add(t, t3, rslt);
 
 	return rslt;
 }
@@ -1039,8 +885,107 @@ std::vector<cv::Vec4f> ClubTracker::lineGroupping2( const std::vector<cv::Vec4i>
 	return newline;
 }
 
+std::vector<LineSegment2Df> ClubTracker::MeargingSegment(const std::vector<LineSegment2Df>& input)
+{
+	double thr = 10;
+	int n = input.size();
+	std::vector<LineSegment2Df> output;
+	output.reserve(n);
+	std::vector<bool> check(n, false);
+
+	for (int i = 0; i<n; ++i)
+	{
+		if (!check[i])
+		for (int j = i+1; j<n; ++j)
+		{
+			if (!check[j])
+			{
+				Point2f d1 = input[j].P1()-input[i].P1();
+				Point2f d2 = input[j].P2()-input[i].P1();
+				double n1 = norm(d1);
+				double n2 = norm(d2);
+				vector<pair<double, Point2f>> v(4);
+				v[0] = pair<double, Point2f>(0, input[i].P1());
+				v[1] = pair<double, Point2f>(input[i].length, input[i].P2());
+				v[2] = pair<double, Point2f>((input[i].dir.dot(d1)>0) ? n1 : -n1, input[j].P1());
+				v[3] = pair<double, Point2f>((input[i].dir.dot(d2)>0) ? n2 : -n2, input[j].P2());
+
+				if ((0<v[2].first && v[2].first<v[1].first) || (0<v[3].first && v[3].first<v[1].first))
+				{
+					if ((0<v[2].first && v[2].first<v[1].first) && (0<v[3].first && v[3].first<v[1].first))
+					{
+						output.push_back(input[i]); check[i] = check[j] = true;	break;
+					}
+					else if (0<v[2].first && v[2].first<v[1].first)
+					{
+						v[3].first < 0 ? output.push_back(LineSegment2Df(v[3].second, v[1].second)) : output.push_back(LineSegment2Df(v[0].second, v[3].second));
+						check[i] = check[j] = true;	break;
+					}
+					else
+					{
+						v[2].first < 0 ? output.push_back(LineSegment2Df(v[2].second, v[1].second)) : output.push_back(LineSegment2Df(v[0].second, v[2].second));
+						check[i] = check[j] = true;	break;
+					}
+				}
+				else if (v[2].first<0 && v[3].first<0)
+				{
+					if (v[2].first < v[3].first)
+					{if (v[3].first > -thr) output.push_back(LineSegment2Df(v[2].second, v[1].second)); check[i] = check[j] = true; break;}
+					else
+					{if (v[2].first > -thr) output.push_back(LineSegment2Df(v[3].second, v[1].second)); check[i] = check[j] = true; break;}
+				}
+				else if (v[2].first>v[1].first && v[3].first>v[1].first)
+				{
+					if (v[2].first < v[3].first)
+					{if (v[2].first-v[1].first < thr) output.push_back(LineSegment2Df(v[0].second, v[3].second)); check[i] = check[j] = true; break;}
+					else
+					{if (v[3].first-v[1].first < thr) output.push_back(LineSegment2Df(v[0].second, v[2].second)); check[i] = check[j] = true; break;}
+				}
+				else/* if ((v[2].first<0 && v[3].first>v[1].first) || (v[2].first>v[1].first && v[3].first<0) )*/
+				{
+					output.push_back(input[j]); check[i] = check[j] = true;	break;
+				}
+				
+			}
+			if (j==n-1)
+			{
+				output.push_back(input[i]);
+				break;
+			}
+		}
+		if (i==n-1)
+		{
+			output.push_back(input[i]);
+			break;
+		}
+	}
+
+	if (output.size()==input.size())
+	{
+		return output;
+	}
+	else return MeargingSegment(output);
+}
+
+LineSegment2Df ClubTracker::PairingSegment( const std::vector<LineSegment2Df>& input )
+{
+
+
+
+
+
+
+	return LineSegment2Df();
+}
+
 std::vector<cv::Vec4f> ClubTracker::lineGroupping3( const std::vector<cv::Vec4i>& lines, const float anglethr, const float distthr1, const float distthr2, bool debug /*= false */ )
 {
+	vector<Vec4f> return_line_segments;
+	return_line_segments.reserve(5);
+	if (lines.empty())
+	{
+		return return_line_segments;
+	}
 	Mat img;
 	if (debug)
 	{
@@ -1050,7 +995,7 @@ std::vector<cv::Vec4f> ClubTracker::lineGroupping3( const std::vector<cv::Vec4i>
 		waitKey(0);//--> for debug
 	}
 	
-	int n = lines.size();
+	int n = lines.size();	
 	vector<LineSegment2Df> lsegments(lines.size());
 	for (int i = 0; i<n; ++i)
 	{
@@ -1061,9 +1006,9 @@ std::vector<cv::Vec4f> ClubTracker::lineGroupping3( const std::vector<cv::Vec4i>
 	// 각도에 따라서 그룹을 나눈다.	
 	vector<vector<LineSegment2Df>> group1(1);
 	group1[0].push_back(lsegments[0]);	
-	vector<float> up1(1, lsegments[0].theta*lsegments[0].length);
-	vector<float> down1(1, lsegments[0].length);
-	vector<float> angle1(1, lsegments[0].theta);
+	vector<double> up1(1, lsegments[0].theta*lsegments[0].length);
+	vector<double> down1(1, lsegments[0].length);
+	vector<double> angle1(1, lsegments[0].theta);
 
 	for (int i = 1; i<n; ++i)
 	{
@@ -1113,16 +1058,17 @@ std::vector<cv::Vec4f> ClubTracker::lineGroupping3( const std::vector<cv::Vec4i>
 		waitKey(0);//--> for debug
 	}
 
+	vector<vector<LineSegment2Df>>::iterator it_lvv = group1.begin();
+	vector<LineSegment2Df>::iterator it_lv;
+	vector<double>::iterator it_dv = angle1.begin();
+
 	// 각 그룹의 기울기를 정렬한다.
-	for (int i = 0; i<group1.size(); ++i)
-	{		
-		if(group1[i].size()>1)
-		{
-			for (int j = 0; j<group1[i].size(); ++j)
-			{
-				group1[i][j].Rotate(angle1[i]-group1[i][j].theta);
-			}
-		}		
+	for (; it_lvv!=group1.end(); ++it_lvv, ++it_dv)
+	{
+ 		for_each((*it_lvv).begin(), (*it_lvv).end(), [it_dv](LineSegment2Df& line)
+ 		{
+			line.Rotate(*it_dv-line.theta); 	
+ 		});
 	}
 	if (debug)
 	{
@@ -1140,7 +1086,7 @@ std::vector<cv::Vec4f> ClubTracker::lineGroupping3( const std::vector<cv::Vec4i>
 	}
 
 
-	vector<Vec4f> return_line_segments;
+// #pragma omp parallel for
 	for (int i = 0; i<group1.size(); ++i)
 	{
 		// 거리 차이에 따라 다시 그룹을 나눈다.
@@ -1176,30 +1122,45 @@ std::vector<cv::Vec4f> ClubTracker::lineGroupping3( const std::vector<cv::Vec4i>
 					break;
 				}
 			}
+		}
 
+		if (group2.size()<2)
+		{
+			break;
 		}
 
 		// 거리에 따라서 정렬
-		for (int j = 0; j<group2.size(); ++j)
+		for (it_lvv = group2.begin(), it_dv = rho2.begin(); it_lvv!=group2.end(); ++it_lvv, ++it_dv)
 		{
-			if (group2[j].size()>1)
+			for_each((*it_lvv).begin(), (*it_lvv).end(), [&it_dv, &return_line_segments](LineSegment2Df& l)
 			{
-				for (int k = 0; k<group2[j].size(); ++k)
-				{
-					Point2f Tvec(group2[j][k].implicit_param[0], group2[j][k].implicit_param[1]);
-					float Tmag = group2[j][k].implicit_param[2]<0 ? rho2[j]-group2[j][k].rho : -rho2[j]+group2[j][k].rho;
-					group2[j][k].Translate(Tmag*Tvec);
-					return_line_segments.push_back(group2[j][k].line);
-				}			
-			}
-			else if (group2[j].size()==1)
-			{
-				return_line_segments.push_back(group2[j][0].line);
-			}
+				Point2f Tvec(l.implicit_param[0], l.implicit_param[1]);
+				float Tmag = l.implicit_param[2]<0 ? (*it_dv)-l.rho : -(*it_dv)+l.rho;
+				l.Translate(Tmag*Tvec);
+// 				return_line_segments.push_back(l.line);
+			});
 		}
+		
+		vector<LineSegment2Df> group3;
+		group3.reserve(group2.size());
+
+		// 각 그룹을 한 직선으로 합친다.
+		for_each(group2.begin(), group2.end(), [&](vector<LineSegment2Df>& lv)
+		{
+			lv = MeargingSegment(lv);
+			if (lv.size()==1)
+			{
+				group3.push_back(lv[0]);
+			}
+			else
+			{
+				LineSegment2Df tem = *(max_element(lv.begin(), lv.end(), [](LineSegment2Df a, LineSegment2Df b){return a.length < b.length;}));
+				group3.push_back(tem);
+			}
+		});
+
+		return_line_segments.push_back(PairingSegment(group3).line);
 	}
-
-
 	
 	
 	return return_line_segments;
@@ -2232,14 +2193,13 @@ std::vector<cv::Mat> ClubTracker::VariableOptimization2( const std::vector<cv::M
 	// 	msk = GetMotionMask(imgs[0], imgs[1], imgs[2], coef_threshold, coef_num_errod, coef_num_dilt);
 
 
-	int gsiz = gauss_siz*2+1;
-	GaussianBlur(msk, msk, Size(gsiz,gsiz), gauss_sig);
-
+// 	int gsiz = gauss_siz*2+1;
+// 	GaussianBlur(msk, msk, Size(gsiz,gsiz), gauss_sig);
 
 	cvtColor(msk, subs[0], CV_GRAY2BGR); // temporally save
 	// 	bitwise_not(subs[0], subs[0]);
 	subs[1] = subs[0].clone();
-
+// 	imwrite("tem.bmp", msk);
 	subs[0] = Scalar();
 
 	vector<vector<Point>> contours = GetContour(msk, contour_threshold);
@@ -2260,7 +2220,7 @@ std::vector<cv::Mat> ClubTracker::VariableOptimization2( const std::vector<cv::M
 
 		// perform hough transform
 		vector<cv::Vec4i> lin;
-		HoughLinesP(roi, lin, 1, CV_PI/180, hough_threshold, hough_minlangth, hough_maxgap);
+ 		HoughLinesP(roi, lin, 1, CV_PI/180, hough_threshold, hough_minlangth, hough_maxgap);
 
 		if (lin.size()>1)
 		{
@@ -2268,6 +2228,20 @@ std::vector<cv::Mat> ClubTracker::VariableOptimization2( const std::vector<cv::M
 			new_lines.push_back(Mat(Mat(lin)+Mat(tem)));
 		}
 	}
+
+// 	new_lines.resize(1);
+// 	// tem fun
+// 	int R = 3;
+// 	LSWMS lswms(msk.size(), R, 10);	
+// 	vector<LSEG> lSegs;
+// 	vector<double> errors;
+// 	lswms.run(msk, lSegs, errors);
+// 	new_lines[0].resize(lSegs.size());
+// 	for (int i = 0; i<lSegs.size(); ++i)
+// 	{
+// 		new_lines[0][i] = Vec4i(lSegs[i][0].x, lSegs[i][0].y, lSegs[i][1].x, lSegs[i][1].y);
+// 	}
+
 
 	for (int i = 0; i<new_lines.size(); ++i)
 		drawLines(subs[0], new_lines[i], colors[i], 2);
@@ -2453,106 +2427,6 @@ std::vector<cv::Mat> ClubTracker::VariableOptimization( const std::vector<cv::Ma
 	return subs;
 }
 
-std::vector<cv::Mat> ClubTracker::GpuVariableOptimization( const std::vector<cv::Mat>& img_buffer, const int frame )
-{
-	vector<Mat> subs(2);
-
-	Size img_sz = img_buffer[0].size();
-	gpu::GpuMat imgs[3], yuv[3], msk, msked;
-
-	// get the motion mask and masked img=======================================
-	imgs[0].upload(img_buffer[frame]);
-	if (frame == 0)
-	{
-		imgs[1].upload(img_buffer[frame+1]);
-		imgs[2].upload(img_buffer[frame]);
-	}
-	else if (frame == num_frame-1)
-	{
-		imgs[1].upload(img_buffer[frame-1]);
-		imgs[2].upload(img_buffer[frame]);
-	}
-	else
-	{
-		imgs[1].upload(img_buffer[frame-1]);
-		imgs[2].upload(img_buffer[frame+1]);
-	}
-
-	for (int i = 0; i<3; ++i)
-		gpu::cvtColor(imgs[i], yuv[i], CV_BGR2YUV);	
-
-// 	Mat temimgs[3];
-// 	for (int i = 0; i<3; ++i)
-// 	{
-// 		yuv[i].download(temimgs[i]);
-// 	}
-// 	Mat msktem = GetMotionMask(temimgs[0],temimgs[1], temimgs[2], coef_threshold, coef_num_errod, coef_num_dilt);
-
-
-	msk = GpuGetMotionMask(yuv[0], yuv[1], yuv[2], coef_threshold, coef_num_errod, coef_num_dilt);
-	Mat msktem;
-	msk.download(msktem);
-	int gsiz = gauss_siz*2+1;
-	GaussianBlur(msktem, msktem, Size(gsiz,gsiz), gauss_sig);
-
-	cvtColor(msktem, subs[0], CV_GRAY2BGR); // temporally save
-	//bitwise_not(subs[0], subs[0]);
-	subs[1] = subs[0].clone();
-
-	vector<vector<Point>> contours = GetContour(msktem, contour_threshold);
-
-	vector<vector<Point>> new_contours;
-	new_contours.reserve(contours.size());
-	vector<vector<cv::Vec4i>> new_lines;
-	new_lines.reserve(contours.size());
-
-	for (int i = 0; i<contours.size(); ++i)
-	{
-		// approximate contour into polygon
-		vector<Point> approx;
-		//approxPolyDP(Mat(contours[i]), approx, arcLength(Mat(contours[i]), true)*coef_contour_approx*0.001, true);
-		approx = contours[i];
-
-		// drawing approximated contour
-		Mat tem(img_sz.height, img_sz.width, CV_8UC1, Scalar(0));
-		drawVector(tem, approx, Scalar(255), 1, false);
-		drawVector(subs[0], approx, colors[i], 1, false);
-
-		// get bounding rect of contour
-		Rect roi_Rect = boundingRect(Mat(approx));
-		Mat roi(tem, roi_Rect);
-		Point shift_pt(roi_Rect.x, roi_Rect.y);
-
-		// perform hough transform
-		vector<cv::Vec4i> lin;
-		HoughLinesP(roi, lin, 1, CV_PI/180, hough_threshold, hough_minlangth, hough_maxgap);
-
-		if (lin.size()>1)
-		{
-			new_contours.push_back(approx);
-
-			vector<Vec4i> tem(lin.size(), Vec4i(shift_pt.x, shift_pt.y, shift_pt.x, shift_pt.y));
-			new_lines.push_back(Mat(Mat(lin)+Mat(tem)));
-		}
-	}
-
-	// 	for (int i = 0; i<new_lines.size(); ++i)
-	// 		drawLines(subs[1], new_lines[i], colors[i+1], 1);
-
-
-	vector<vector<Vec4f>> new_lines2;
-	new_lines2.reserve(new_lines.size());
-	for (int i = 0; i<new_lines.size(); ++i)
-	{
-		vector<Vec4f> tem = lineGroupping(new_lines[i], anglethr, distnthr1, distnthr2);
-		if (tem.size()>0) new_lines2.push_back(tem);
-	}
-
-	for (int i = 0; i<new_lines2.size(); ++i)
-		drawLines(subs[1], new_lines2[i], colors[i], 3);
-
-	return subs;
-}
 
 void ClubTracker::saveTrackingResult()
 {

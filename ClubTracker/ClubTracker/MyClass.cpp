@@ -14,8 +14,8 @@ using namespace std;
 
 static const int timerate = 10;
 
-#define DATA_PATH "e:\\Users\\hounhoun\\Desktop\\datas\\0725"
-#define PARA_PATH "e:\\Users\\hounhoun\\Desktop\\datas\\0725"
+#define DATA_PATH "d:\\Users\\hounhoun\\Desktop\\datas\\0725"
+#define PARA_PATH "d:\\Users\\hounhoun\\Desktop\\datas\\0725"
 #define CALIB_PATH "calib\\%s.yml"
 #define SAVE_CLICKED_PATH "calib\\%s.txt"
 
