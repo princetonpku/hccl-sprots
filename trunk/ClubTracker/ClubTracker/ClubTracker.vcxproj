@@ -108,6 +108,7 @@
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
     </ClCompile>
     <ClCompile Include="Imgprocessing.cpp" />
+    <ClCompile Include="LSWMS.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="MyClass.cpp" />
     <ClCompile Include="myQGLViewer.cpp" />
@@ -148,6 +149,7 @@
     </ClInclude>
     <ClInclude Include="Imgprocessing.h" />
     <ClInclude Include="LineSegment.h" />
+    <ClInclude Include="LSWMS.h" />
     <ClInclude Include="ShortestPath.h" />
     <CustomBuild Include="myQGLViewer.h">
       <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">$(QTDIR)\bin\moc.exe;%(FullPath)</AdditionalInputs>
