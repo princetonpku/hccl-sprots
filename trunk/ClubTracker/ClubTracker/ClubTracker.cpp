@@ -91,7 +91,6 @@ void ClubTracker::Initialize( const int n_frame, const cv::Size imgsz )
 // tracking functions
 void ClubTracker::Tracking2D( const std::vector<cv::Mat>& main_imgs, const std::vector<cv::Mat>& sub_imgs, CalibClass& calib )
 {
-	std::vector<cv::Mat> t = VariableOptimization(main_imgs, 99);
 	int i = 0;
 	// 2d tracking
 #pragma omp parallel for num_threads(4)
@@ -106,7 +105,7 @@ void ClubTracker::Tracking2D( const std::vector<cv::Mat>& main_imgs, const std::
 
 
 	sorting_LinePoints();
- 	checkContinuous2();
+//  	checkContinuous2();
 	
 // 	int start = 0;
 // 	int end = 72;
@@ -135,8 +134,8 @@ void ClubTracker::Tracking2D( const std::vector<cv::Mat>& main_imgs, const std::
 
 	//////////////////////////////////////////////////////////////////////////
 	datacopy(0, 1);
-	stereo2Dmatching(main_upswing[1], sub_upswing[1], calib);
-	stereo2Dmatching(main_downswing[1], sub_downswing[1], calib);
+// 	stereo2Dmatching(main_upswing[1], sub_upswing[1], calib);
+// 	stereo2Dmatching(main_downswing[1], sub_downswing[1], calib);
 
 	//////////////////////////////////////////////////////////////////////////
 	datacopy(1, 2);
@@ -1003,9 +1002,9 @@ std::vector<cv::Vec4f> ClubTracker::lineGroupping3( const std::vector<cv::Vec4i>
 	}
 	sort(lsegments.begin(), lsegments.end(), [](const LineSegment2Df& a, const LineSegment2Df& b){return a.length>b.length;});
 
-	// 각도에 따라서 그룹을 나눈다.	
+	// 각도에 따라서 그룹을 나눈다.
 	vector<vector<LineSegment2Df>> group1(1);
-	group1[0].push_back(lsegments[0]);	
+	group1[0].push_back(lsegments[0]);
 	vector<double> up1(1, lsegments[0].theta*lsegments[0].length);
 	vector<double> down1(1, lsegments[0].length);
 	vector<double> angle1(1, lsegments[0].theta);
@@ -1025,8 +1024,8 @@ std::vector<cv::Vec4f> ClubTracker::lineGroupping3( const std::vector<cv::Vec4i>
 			// 각도 차이가 anglethr 미만이면 그룹에 포함시키고 다음 선분을 비교한다.
 			// 그룹에 해당하는 각도를 업데이트 한다.
  			if (angle_diff < anglethr)
-			{					
-				group1[j].push_back(lsegments[i]);				
+			{
+				group1[j].push_back(lsegments[i]);
 				up1[j] += lsegments[i].length*lsegments[i].theta;
 				down1[j] += lsegments[i].length;
 				angle1[j] = up1[j]/down1[j];
@@ -1034,14 +1033,14 @@ std::vector<cv::Vec4f> ClubTracker::lineGroupping3( const std::vector<cv::Vec4i>
 			}
 			// 맞는 그룹이 없으면 그룹을 새로 생성한다.
 			else if(j==group1.size()-1)
-			{				
+			{
 				group1.push_back(vector<LineSegment2Df>(1, lsegments[i]));
 				up1.push_back(lsegments[i].length*lsegments[i].theta);
 				down1.push_back(lsegments[i].length);
 				angle1.push_back(lsegments[i].theta);
 				break;
-			}				
-		}		
+			}
+		}	
 	}
 
 	if (debug)

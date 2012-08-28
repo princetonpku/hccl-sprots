@@ -429,8 +429,10 @@ void MyClass::loadImg()
 #pragma omp parallel for num_threads(8)
 	for (int i = 0; i<num_frame; ++i)
 	{
-		cam_imgs[1][i] = calib.undistImage(imread(files[i].toStdString()), 0);
-		cam_imgs[0][i] = calib.undistImage(imread(files[i+num_frame].toStdString()), 1);
+// 		cam_imgs[1][i] = calib.undistImage(imread(files[i].toStdString()), 0);
+// 		cam_imgs[0][i] = calib.undistImage(imread(files[i+num_frame].toStdString()), 1);
+		cam_imgs[1][i] = imread(files[i].toStdString());
+		cam_imgs[0][i] = imread(files[i+num_frame].toStdString());
 	}
 
 	imgsize = QSize(cam_imgs[0][0].cols, cam_imgs[0][0].rows);
