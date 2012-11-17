@@ -1,0 +1,158 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="Source Files">
+      <UniqueIdentifier>{4FC737F1-C7A5-4376-A066-2A32D752A2FF}</UniqueIdentifier>
+      <Extensions>cpp;cxx;c;def</Extensions>
+    </Filter>
+    <Filter Include="Header Files">
+      <UniqueIdentifier>{93995380-89BD-4b04-88EB-625FBE52EBFB}</UniqueIdentifier>
+      <Extensions>h</Extensions>
+    </Filter>
+    <Filter Include="Form Files">
+      <UniqueIdentifier>{99349809-55BA-4b9d-BF79-8FDBB0286EB3}</UniqueIdentifier>
+      <Extensions>ui</Extensions>
+    </Filter>
+    <Filter Include="Resource Files">
+      <UniqueIdentifier>{D9D6E242-F8AF-46E4-B9FD-80ECBC20BA3E}</UniqueIdentifier>
+      <Extensions>qrc;*</Extensions>
+      <ParseFiles>false</ParseFiles>
+    </Filter>
+    <Filter Include="Generated Files">
+      <UniqueIdentifier>{71ED8ED8-ACB9-4CE9-BBE1-E00B30144E11}</UniqueIdentifier>
+      <Extensions>moc;h;cpp</Extensions>
+      <SourceControlFiles>False</SourceControlFiles>
+    </Filter>
+    <Filter Include="Generated Files\Debug">
+      <UniqueIdentifier>{8123a093-c888-416d-b1af-4843ab69c16d}</UniqueIdentifier>
+      <Extensions>cpp;moc</Extensions>
+      <SourceControlFiles>False</SourceControlFiles>
+    </Filter>
+    <Filter Include="Generated Files\Release">
+      <UniqueIdentifier>{96ce5d2d-d4a8-4a21-9f62-a5867b5be1e2}</UniqueIdentifier>
+      <Extensions>cpp;moc</Extensions>
+      <SourceControlFiles>False</SourceControlFiles>
+    </Filter>
+    <Filter Include="LBFGS">
+      <UniqueIdentifier>{eff0ce67-4f6a-4eb2-a13d-2638add93ba8}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="LBFGS\Hao Li">
+      <UniqueIdentifier>{7d451547-e379-4079-988f-834a22fd2b9a}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="LBFGS\Sumner">
+      <UniqueIdentifier>{e913e693-8bba-48c8-b5cb-e218b1cc9ffb}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="PropertySheet">
+      <UniqueIdentifier>{34526c7c-ca56-41bc-a8dd-54aaba5f8467}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="main.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="DeformableRegistration.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="GeneratedFiles\Debug\moc_DeformableRegistration.cpp">
+      <Filter>Generated Files\Debug</Filter>
+    </ClCompile>
+    <ClCompile Include="GeneratedFiles\Release\moc_DeformableRegistration.cpp">
+      <Filter>Generated Files\Release</Filter>
+    </ClCompile>
+    <ClCompile Include="GeneratedFiles\qrc_DeformableRegistration.cpp">
+      <Filter>Generated Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Viewer.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="GeneratedFiles\Debug\moc_Viewer.cpp">
+      <Filter>Generated Files\Debug</Filter>
+    </ClCompile>
+    <ClCompile Include="GeneratedFiles\Release\moc_Viewer.cpp">
+      <Filter>Generated Files\Release</Filter>
+    </ClCompile>
+    <ClCompile Include="OpenMeshWrapper.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="DeformationGraph.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="glPrimitives.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="ap.cpp">
+      <Filter>LBFGS</Filter>
+    </ClCompile>
+    <ClCompile Include="lbfgsb.cpp">
+      <Filter>LBFGS\Sumner</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <CustomBuild Include="DeformableRegistration.h">
+      <Filter>Header Files</Filter>
+    </CustomBuild>
+    <CustomBuild Include="DeformableRegistration.ui">
+      <Filter>Form Files</Filter>
+    </CustomBuild>
+    <CustomBuild Include="DeformableRegistration.qrc">
+      <Filter>Resource Files</Filter>
+    </CustomBuild>
+    <CustomBuild Include="Viewer.h">
+      <Filter>Header Files</Filter>
+    </CustomBuild>
+    <CustomBuild Include="Decimate.ui">
+      <Filter>Form Files</Filter>
+    </CustomBuild>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="GeneratedFiles\ui_DeformableRegistration.h">
+      <Filter>Generated Files</Filter>
+    </ClInclude>
+    <ClInclude Include="VectorQuaternion.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="OpenMeshWrapper.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="GeneratedFiles\ui_Decimate.h">
+      <Filter>Generated Files</Filter>
+    </ClInclude>
+    <ClInclude Include="DeformationGraph.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="glPrimitives.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="ap.h">
+      <Filter>LBFGS</Filter>
+    </ClInclude>
+    <ClInclude Include="apvt.h">
+      <Filter>LBFGS</Filter>
+    </ClInclude>
+    <ClInclude Include="lbfgsb.h">
+      <Filter>LBFGS\Sumner</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="blas_win32_MT.dll" />
+    <None Include="lapack_win32_MT.dll" />
+    <None Include="PropertySheets\Boost-1.49.0.props">
+      <Filter>PropertySheet</Filter>
+    </None>
+    <None Include="PropertySheets\Geodesic.props">
+      <Filter>PropertySheet</Filter>
+    </None>
+    <None Include="PropertySheets\libKDTree.props">
+      <Filter>PropertySheet</Filter>
+    </None>
+    <None Include="PropertySheets\OpenMesh-2.3.props">
+      <Filter>PropertySheet</Filter>
+    </None>
+    <None Include="PropertySheets\QGLViewer-2.3.17.props">
+      <Filter>PropertySheet</Filter>
+    </None>
+    <None Include="PropertySheets\Armadillo-3.2.4.props">
+      <Filter>PropertySheet</Filter>
+    </None>
+  </ItemGroup>
+</Project>
