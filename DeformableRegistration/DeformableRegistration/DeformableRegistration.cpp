@@ -16,6 +16,18 @@ DeformableRegistration::DeformableRegistration(QWidget *parent, Qt::WFlags flags
 	connect(ui.actionSaveTarget, SIGNAL(triggered()), this, SLOT(OnFileSaveTarget()));
 	connect(ui.actionExit, SIGNAL(triggered()), this, SLOT(OnFileExit()));
 
+	connect(ui.actionPoint, SIGNAL(triggered()), this, SLOT(OnUpdateGL()));
+	connect(ui.actionWireframe, SIGNAL(triggered()), this, SLOT(OnUpdateGL()));
+	connect(ui.actionFlat, SIGNAL(triggered()), this, SLOT(OnUpdateGL()));
+	connect(ui.actionSmooth, SIGNAL(triggered()), this, SLOT(OnUpdateGL()));
+	connect(ui.actionTemplateVisible, SIGNAL(triggered()), this, SLOT(OnUpdateGL()));
+
+	connect(ui.actionPoints_2, SIGNAL(triggered()), this, SLOT(OnUpdateGL()));
+	connect(ui.actionWireframe_2, SIGNAL(triggered()), this, SLOT(OnUpdateGL()));
+	connect(ui.actionFlat_2, SIGNAL(triggered()), this, SLOT(OnUpdateGL()));
+	connect(ui.actionSmooth_2, SIGNAL(triggered()), this, SLOT(OnUpdateGL()));
+	connect(ui.actionTargetVisible, SIGNAL(triggered()), this, SLOT(OnUpdateGL()));
+
 	connect(ui.actionDecimate, SIGNAL(triggered()), this, SLOT(OnToolsDecimate()));
 	connect(ui.actionRANDOM, SIGNAL(triggered()), this, SLOT(OnToolsSample_Random()));
 	connect(ui.actionQuadricFitting, SIGNAL(triggered()), this, SLOT(OnToolsSample_Quad()));
@@ -39,17 +51,7 @@ DeformableRegistration::~DeformableRegistration()
 
 void DeformableRegistration::OnFileNew()
 {
-	ui.view->templ.clear();
-	ui.view->target.clear();
-	ui.view->graph.Clear();
-	ui.view->onEmbededDeformation = false;
-	ui.view->selected_vertex_idx.clear();
-	ui.view->selected_handle_idx.clear();
-	ui.view->moved_point.clear();
-	ui.view->k_nearest_idx.clear();
-	ui.view->weight_value.clear();
-	ui.view->result_translation.clear();
-	ui.view->result_rotation.clear();
+	ui.view->Clear();
 }
 
 void DeformableRegistration::OnFileOpenTemplate()
@@ -68,18 +70,17 @@ void DeformableRegistration::OnFileOpenTemplate()
 	ui.view->graph.Clear();
 	ui.view->templ.Read(file.toStdString().c_str());
 
-// 	ui.view->templ.Translate(-100,20,0);
-
 	ui.view->templ.UpdateCOG();
 	ui.view->templ.UpdateBoundingSphere();
 	double r = ui.view->templ.GetBoundingSphereRadius();
 	
 	std::cout << "the num of vertexes : " << ui.view->templ.n_vertices() << std::endl;
+	std::cout << "the num of faces : " << ui.view->templ.n_faces() << std::endl;
 	std::cout << "cog : " << ui.view->templ.cog[0] << ", " << ui.view->templ.cog[1] << ", " << ui.view->templ.cog[2] << std::endl;
 
-	ui.view->camera()->setPosition(qglviewer::Vec(0,0,0));
-	ui.view->camera()->lookAt(qglviewer::Vec(0,0,1));	
-	ui.view->camera()->setUpVector(qglviewer::Vec(0,-1,0));
+// 	ui.view->camera()->setPosition(qglviewer::Vec(0,0,0));
+// 	ui.view->camera()->lookAt(qglviewer::Vec(0,0,1));	
+// 	ui.view->camera()->setUpVector(qglviewer::Vec(0,-1,0));
 
 	ui.view->camera()->setSceneRadius(r/**0.2*/);
 	ui.view->camera()->showEntireScene();	
@@ -108,6 +109,7 @@ void DeformableRegistration::OnFileOpenTarget()
 	double r = ui.view->target.GetBoundingSphereRadius();
 	
 	std::cout << "the num of vertexes : " << ui.view->target.n_vertices() << std::endl;
+	std::cout << "the num of faces : " << ui.view->target.n_faces() << std::endl;
 	std::cout << "cog : " << ui.view->target.cog[0] << ", " << ui.view->target.cog[1] << ", " << ui.view->target.cog[2] << std::endl;	
 
 	ui.view->updateGL();
@@ -206,4 +208,9 @@ void DeformableRegistration::OnToolsGeodesic()
 void DeformableRegistration::OnInitGeo()
 {
 	ui.view->InitGeo();
+}
+
+void DeformableRegistration::OnUpdateGL()
+{
+	ui.view->updateGL();
 }

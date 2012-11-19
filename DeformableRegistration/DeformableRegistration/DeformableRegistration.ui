@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>853</width>
-    <height>667</height>
+    <width>600</width>
+    <height>520</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -28,7 +28,7 @@
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>853</width>
+     <width>600</width>
      <height>21</height>
     </rect>
    </property>
@@ -127,6 +127,15 @@
    <attribute name="toolBarBreak">
     <bool>false</bool>
    </attribute>
+   <addaction name="actionNew"/>
+   <addaction name="separator"/>
+   <addaction name="actionOpenTemplate"/>
+   <addaction name="actionPoint"/>
+   <addaction name="actionWireframe"/>
+   <addaction name="actionSmooth"/>
+   <addaction name="actionTemplateVisible"/>
+   <addaction name="separator"/>
+   <addaction name="actionOpenTarget"/>
   </widget>
   <widget class="QStatusBar" name="statusBar"/>
   <action name="actionNew">
@@ -370,6 +379,11 @@
   <action name="actionInitGeo">
    <property name="text">
     <string>InitGeo</string>
+   </property>
+  </action>
+  <action name="actionNew_2">
+   <property name="text">
+    <string>New</string>
    </property>
   </action>
  </widget>

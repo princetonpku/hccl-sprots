@@ -11,7 +11,6 @@
 #include <numeric>
 #include <limits>
 
-//#include <armadillo>
 #include <OpenMesh/Tools/Decimater/DecimaterT.hh>
 #include <OpenMesh/Tools/Decimater/ModQuadricT.hh>
 
@@ -41,10 +40,10 @@ CTriMesh::~CTriMesh(void)
 void CTriMesh::Clear()
 {
 	this->clear();
-// 	cog[0] = cog[1] = cog[2] = 0.f;
-// 	bounding_box_min[0] = bounding_box_min[1] = bounding_box_min[2] = 0.f;
-// 	bounding_box_max[0] = bounding_box_max[1] = bounding_box_max[2] = 0.f;
-// 	bounding_sphere_rad = 0.f;
+	cog[0] = cog[1] = cog[2] = 0.f;
+	bounding_box_min[0] = bounding_box_min[1] = bounding_box_min[2] = 0.f;
+	bounding_box_max[0] = bounding_box_max[1] = bounding_box_max[2] = 0.f;
+	bounding_sphere_rad = 0.f;
 }
 
 bool CTriMesh::Read(std::string strFilePath)
@@ -123,9 +122,11 @@ void CTriMesh::RenderWireframe(GLuint nFlag/* = 0*/) const
 	HCCLMesh::ConstFaceIter fIt(faces_begin()), fEnd(faces_end());
 	HCCLMesh::ConstFaceVertexIter fvIt;
 
-	glEnable(GL_POINT_SMOOTH);
-	glEnable(GL_LINE_SMOOTH);
-				
+	glEnable(GL_POLYGON_OFFSET_LINE);
+	glPolygonOffset(-1.0f, -1.0f);
+	
+	
+	glEnable(GL_LINE_SMOOTH);				
 	glPolygonMode(GL_FRONT_AND_BACK,  GL_LINE);
 	glBegin(GL_TRIANGLES);
 	for (; fIt!=fEnd; ++fIt)
@@ -138,10 +139,9 @@ void CTriMesh::RenderWireframe(GLuint nFlag/* = 0*/) const
 		glVertex3dv( &point(fvIt)[0] );
 	}
 	glEnd();
-
-	glDisable(GL_POINT_SMOOTH);
 	glDisable(GL_LINE_SMOOTH);
 
+	glDisable(GL_POLYGON_OFFSET_LINE);
 }
 
 void CTriMesh::RenderFlat(GLuint nFlag/* = 0*/) const
@@ -332,22 +332,22 @@ void CTriMesh::Rotate( double angle, HCCLMesh::Point axis )
 
 void CTriMesh::Decimate(double p)
 {
-// 	typedef OpenMesh::Decimater::DecimaterT< HCCLMesh > Decimater;
-// 	typedef OpenMesh::Decimater::ModQuadricT< HCCLMesh >::Handle HModQuadric;
-// 
-// 	Decimater   decimater(*this);  // a decimater object, connected to a mesh
-// 	HModQuadric hModQuadric;      // use a quadric module
-// 
-// 	decimater.add( hModQuadric ); // register module at the decimater
-// 
-// 	std::cout << decimater.module( hModQuadric ).name() << std::endl;
-// 
-// 	// the way to access the module 
-// 	decimater.initialize();       // let the decimater initialize the mesh and the modules
-// 
-// 	decimater.decimate_to(n_vertices()*p);
-// 
-// 	garbage_collection();
+	typedef OpenMesh::Decimater::DecimaterT< HCCLMesh > Decimater;
+	typedef OpenMesh::Decimater::ModQuadricT< HCCLMesh >::Handle HModQuadric;
+
+	Decimater   decimater(*this);  // a decimater object, connected to a mesh
+	HModQuadric hModQuadric;      // use a quadric module
+
+	decimater.add( hModQuadric ); // register module at the decimater
+
+	std::cout << decimater.module( hModQuadric ).name() << std::endl;
+
+	// the way to access the module 
+	decimater.initialize();       // let the decimater initialize the mesh and the modules
+
+	decimater.decimate_to(n_vertices()*p);
+
+	garbage_collection();
 }
 
 void CTriMesh::SampleRandom(int nSamples, std::vector<Vector3d>& samples) const

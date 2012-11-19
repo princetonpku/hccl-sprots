@@ -21,7 +21,9 @@ public:
 	Viewer(QWidget *parent = 0);
 	DeformableRegistration* pParentDlg;
 
-protected :
+	void Clear();
+
+protected :	
 	virtual void init();
 	virtual void draw();
 	virtual void drawWithNames();
@@ -90,7 +92,6 @@ public:
 	// Geodesic part//
 	//////////////////
 	geodesic::Mesh mesh;
-	
 
 	bool is_geo;
 	unsigned source_vertex_index;

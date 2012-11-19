@@ -8,14 +8,6 @@
 #include <OpenMesh/Core/IO/MeshIO.hh>
 #include <OpenMesh/Core/Mesh/TriMesh_ArrayKernelT.hh>
 
-// #ifndef min
-// #define min(a, b) (((a) < (b))? (a) : (b))
-// #endif
-// #ifndef max
-// #define max(a, b) (((a) > (b))? (a) : (b))
-// #endif
-
-
 struct HCCLTraits : public OpenMesh::DefaultTraits
 {
 	typedef OpenMesh::Vec3d Point;
@@ -93,7 +85,6 @@ public:
 	void UpdateBoundingSphere(void);
 
 	double GetBoundingSphereRadius(void) const;
-
 
 
 //////////////////////////////////////////////////////////////////////////

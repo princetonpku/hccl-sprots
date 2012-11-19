@@ -33,6 +33,7 @@ private slots:
 
 	void OnViewDeformationGraph();
 
+	void OnUpdateGL();
 
 	/////////////////
 	// Hoa Li part //
