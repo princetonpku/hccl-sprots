@@ -18,6 +18,29 @@ Viewer::Viewer(QWidget *parent) : QGLViewer(parent)
 {
 }
 
+
+void Viewer::Clear()
+{
+	onEmbededDeformation = false;
+	is_hoa_initialized = false;
+	is_geo = false;
+
+	templ.Clear();
+	target.Clear();
+	graph.Clear();
+	target_dmap.Clear();
+
+	selected_vertex_idx.clear();
+	selected_handle_idx.clear();
+	moved_point.clear();
+	k_nearest_idx.clear();
+	weight_value.clear();
+	result_translation.clear();
+	result_rotation.clear();
+
+}
+
+
 void Viewer::init()
 {
 	// Restore previous viewer state.
@@ -202,7 +225,6 @@ void Viewer::draw()
 				glNormalPointer(GL_DOUBLE, 0, templ.vertex_normals());	
 
 				glEnableClientState(GL_COLOR_ARRAY);
-// 				glColorPointer(3, GL_UNSIGNED_BYTE, 0, templ.vertex_colors());
 				glColorPointer(3, GL_DOUBLE, 0, templ.vertex_colors());
 
 				HCCLMesh::ConstFaceIter fIt(templ.faces_begin()), fEnd(templ.faces_end());
