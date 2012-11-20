@@ -34,6 +34,9 @@ typedef OpenMesh::TriMesh_ArrayKernelT<HCCLTraits> HCCLMesh;
 typedef std::pair<HCCLMesh::Point, int> IndexedPoint;
 typedef KDTree::KDTree<3, IndexedPoint, std::pointer_to_binary_function<IndexedPoint, size_t, double> > HCCLKDTree;
 
+// Geodesic
+#include <geodesic_algorithm_exact.h>
+
 
 #define TM_SAMPLE_UNIFORM_DART 0x0001
 
@@ -59,17 +62,17 @@ public:
 // OpenGL Display														//
 //////////////////////////////////////////////////////////////////////////
 public:
-	enum renderMethod {RENDER_SMOOTH, RENDER_FLAT, RENDER_POINTS, RENDER_WIRE};
-	void Render(renderMethod nMethod = RENDER_SMOOTH, unsigned int nFlag = 0) const; // TODO: flag 구현할 것
+	enum renderMethod {RENDER_FACES, RENDER_POINTS, RENDER_WIRE};
+	bool render_flag[3];
+	void Render(bool isSmooth = true, bool isVertexColor = false);
+	void Draw_BoundingBox(void);
+	void Draw_BoundingSphere(void); // <-- TODO
+
 protected:
 	void RenderPoints(unsigned int nFlag = 0) const;
 	void RenderWireframe(unsigned int nFlag = 0) const;
 	void RenderFlat(unsigned int nFlag = 0) const;
-	void RenderSmooth(unsigned int nFlag = 0) const;
-
- 	void Draw_BoundingBox(void);
- 	void Draw_BoundingSphere(void); // <-- TODO
-
+	void RenderSmooth(unsigned int nFlag = 0) const; 	
 
 //////////////////////////////////////////////////////////////////////////
 // Geometric properties													//
@@ -85,7 +88,6 @@ public:
 	void UpdateBoundingSphere(void);
 
 	double GetBoundingSphereRadius(void) const;
-
 
 //////////////////////////////////////////////////////////////////////////
 // Rigid-Body Transformations											//
@@ -106,8 +108,7 @@ public:
 	void SampleRandom(int nSamples, std::vector<Vector3d>& samples, std::vector<int>& indx) const;
 	void SampleUniform(int nSamples, std::vector<Vector3d>& samples, std::vector<int>& indx, uint nFlag = TM_SAMPLE_UNIFORM_DART) const;
 	//void SampleEx(int nSamples, std::vector<Vector3d>& samples) const;
-
-
+	
 
 //////////////////////////////////////////////////////////////////////////
 // Find closest point via KD-Tree search								//
@@ -117,16 +118,36 @@ public:
 	void BuildKDTree(void);
 	void FindClosestPoint(Vector3d ref, int* idx, int n = 1, Vector3d* pt = NULL) const;
 	void DestroyKDTree(void);
+	
+//////////////////////////////////////////////////////////////////////////
+// Geodesic Part														//
+//////////////////////////////////////////////////////////////////////////
+public:
+	geodesic::Mesh mesh;
+	geodesic::GeodesicAlgorithmExact algorithm_exact;
 
+	std::vector<geodesic::SurfacePoint> geo_path;
+	std::vector<double> geodesic_dist;
+	double max_geodesic_dist;
 
+	void InitGeo();
+	void Propagate(const int single_source);
+	void Propagate(const std::vector<int>& from);	
+	void GetGeodesicDistanceAll();
+	double GetGeodesicPath(const int to);
+
+private:	
+	void GetGeodesicDistance(const int to, double& dist);
+	void HSV2RGB(double h, double s, double v, double *r, double *g, double *b);
+	
 
 //////////////////////////////////////////////////////////////////////////
 // Other functions														//
 //////////////////////////////////////////////////////////////////////////
 public:
 	void Decimate(double p); // Decimate mesh while retaining p% of vertices. (0 < p < 1)	
-	double GeodesicDistance(const HCCLMesh::Point& from, const HCCLMesh::Point& to);
 };
+
 
 
 #endif // HCCL_OPENMESHWRAPPER_H_

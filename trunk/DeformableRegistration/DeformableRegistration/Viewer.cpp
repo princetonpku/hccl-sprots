@@ -38,6 +38,7 @@ void Viewer::Clear()
 	result_translation.clear();
 	result_rotation.clear();
 
+	updateGL();
 }
 
 
@@ -91,25 +92,30 @@ void Viewer::draw()
 		glTranslatev(templ.point(templ.vertex_handle(target_vertex_index)).data());
 		DrawSphere(0.02*r);
 		glPopMatrix();
-
+		
 		glColor3ub(255,0,0);
-		for (int i = 0; i<geodesic_path.size(); ++i)
-		{
-			glPushMatrix();
-			glTranslatev(geodesic_path[i].val);
-			DrawSphere(0.007*r);
-			glPopMatrix();
-		}
-		glEnable(GL_LINE_SMOOTH);
+// 		for (int i = 0; i<templ.geo_path.size(); ++i)
+// 		{
+// 			glPushMatrix();
+// 			glTranslatev(templ.geo_path[i].xyz());
+// 			DrawSphere(0.007*r);
+// 			glPopMatrix();
+// 		}
+// 		glEnable(GL_LINE_SMOOTH);
+
+		glDisable(GL_LIGHTING);
+		glLineWidth(3.0);
 		glBegin(GL_LINE_STRIP);
-		for (int i = 0; i<geodesic_path.size(); ++i)
+		for (int i = 0; i<templ.geo_path.size(); ++i)
 		{
-			glVertex3dv(geodesic_path[i].val);
+			glVertex3dv(templ.geo_path[i].xyz());
 		}
 		glEnd();
 		glDisable(GL_LINE_SMOOTH);
-	}
+		glLineWidth(1.0);
+		glEnable(GL_LIGHTING);
 
+	}
 
 
 	// Draw Deformation graph
@@ -155,129 +161,27 @@ void Viewer::draw()
 			glVertex3dv(graph.draw_nodes[graph.edges[i][1]].val);
 		}
 		glEnd();
-
-		// Draw corresponding points
-		if (is_hoa_initialized)
-		{
-			glColor4ub(180,30,150,200);
-			vector<int> indx;
-			for(int i = 0; i < graph.draw_nodes.size(); i++)
-			{
-				double au, av, d, d1, d2, u = x(i*15+13), v = x(i*15+14);
-				au = u-int(u);
-				av = v-int(v);
-				if (u+1>=x_res-1 || v+1>=y_res-1)
-				{
-					d = depth_map[v][u];
-					indx.push_back(int(v)*x_res+int(u));
-				}
-				else
-				{
-					d1 = (1-au)*depth_map[int(v)][int(u)] + au*depth_map[int(v)][int(u)+1];
-					d2 = (1-au)*depth_map[int(v)+1][int(u)] + au*depth_map[int(v)+1][int(u)+1];
-					d = (1-av)*d1+av*d2;
-				}
-
-				Vector3d c_pt(x(i*15+13),x(i*15+14),depth_map[x(i*15+14)][x(i*15+13)]);
-				glPushMatrix();
-				glTranslatev(c_pt.val);
-				DrawSphere(2);
-				glPopMatrix();
-
-				glBegin(GL_LINES);
-				glVertex3dv(graph.draw_nodes[i].val);
-				glVertex3dv(c_pt.val);
-				glEnd();
-			}
-// 			cout<<"num of near edge pts"<<endl;
-// 			cout<<indx.size()<<endl<<endl;
-			glColor3ub(0,0,255);
-			for (int i = 0; i<indx.size(); ++i)
-			{
-				glPushMatrix();
-				glTranslatev(target_dmap.nodes[indx[i]]);
-				DrawSphere(3);
-				glPopMatrix();
-			}
-// 			glColor4ub(120,30,180,150);
-// 			for (int i = 0; i<target_dmap.nodes.size(); ++i)
-// 			{
-// 				glPushMatrix();
-// 				glTranslatev(target_dmap.nodes[i]);
-// 				DrawSphere(1.7);
-// 				glPopMatrix();
-// 			}
-		}
 	}
 
 	// Draw Template Mesh
 	if(pParentDlg->ui.actionTemplateVisible->isChecked())
 	{
-		// 	glColor4ub(255, 190, 100, 200);
-		if (pParentDlg->ui.actionSmooth->isChecked())
-		{
-			if (is_geo)
-			{
-				glEnableClientState(GL_VERTEX_ARRAY);
-				glVertexPointer(3, GL_DOUBLE, 0, templ.points());
+		templ.render_flag[CTriMesh::renderMethod::RENDER_FACES] = pParentDlg->ui.actionFace->isChecked();
+		templ.render_flag[CTriMesh::renderMethod::RENDER_WIRE] = pParentDlg->ui.actionWireframe->isChecked();
+		templ.render_flag[CTriMesh::renderMethod::RENDER_POINTS] = pParentDlg->ui.actionPoint->isChecked();
 
-				glEnableClientState(GL_NORMAL_ARRAY);
-				glNormalPointer(GL_DOUBLE, 0, templ.vertex_normals());	
-
-				glEnableClientState(GL_COLOR_ARRAY);
-				glColorPointer(3, GL_DOUBLE, 0, templ.vertex_colors());
-
-				HCCLMesh::ConstFaceIter fIt(templ.faces_begin()), fEnd(templ.faces_end());
-				HCCLMesh::ConstFaceVertexIter fvIt;
-
-				glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
-				glBegin(GL_TRIANGLES);
-				for (; fIt!=fEnd; ++fIt)
-				{
-					fvIt = templ.cfv_iter(fIt.handle());
-					glArrayElement(fvIt.handle().idx());
-					glArrayElement((++fvIt).handle().idx());
-					glArrayElement((++fvIt).handle().idx());
-				}
-				glEnd();
-
-				glDisableClientState(GL_VERTEX_ARRAY);
-				glDisableClientState(GL_NORMAL_ARRAY);
-				glDisableClientState(GL_COLOR_ARRAY);
-			}
-			else
-			{
-				glColor3ub(255, 190, 100);
-				templ.Render(CTriMesh::RENDER_SMOOTH);
-			}			
-		}
-
-		if (pParentDlg->ui.actionPoint->isChecked())
-		{
-			glColor3ub(0, 0, 0);
-			templ.Render(CTriMesh::RENDER_POINTS);
-		}			
-
-		if (pParentDlg->ui.actionWireframe->isChecked())
-		{
-			glColor3ub(0, 0, 0);
-			templ.Render(CTriMesh::RENDER_WIRE);
-		}
-			
-			
-
-// 		glColor3ub(0, 0, 0);
-// 		templ.Render(CTriMesh::RENDER_WIRE);
+		glColor3ub(255, 190, 100);
+		templ.Render(pParentDlg->ui.actionSmooth->isChecked(), is_geo);
 	}
 
 	// Draw Target Mesh
 	if(pParentDlg->ui.actionTargetVisible->isChecked())
 	{
-		if(onEmbededDeformation)
-			glColor3ub(255, 190, 100);
-		else
-			glColor3ub(100, 190, 255);
-		target.Render();
+// 		if(onEmbededDeformation)
+// 			glColor3ub(255, 190, 100);
+// 		else
+// 			glColor3ub(100, 190, 255);
+// 		target.Render();
 	}
 
 	// Draw selected points
@@ -295,6 +199,60 @@ void Viewer::draw()
 			glPopMatrix();
 		}
 	}
+
+	// Draw corresponding points
+	if (is_hoa_initialized)
+	{
+		glColor4ub(180,30,150,200);
+		vector<int> indx;
+		for(int i = 0; i < graph.draw_nodes.size(); i++)
+		{
+			double au, av, d, d1, d2, u = x(i*15+13), v = x(i*15+14);
+			au = u-int(u);
+			av = v-int(v);
+			if (u+1>=x_res-1 || v+1>=y_res-1)
+			{
+				d = depth_map[v][u];
+				indx.push_back(int(v)*x_res+int(u));
+			}
+			else
+			{
+				d1 = (1-au)*depth_map[int(v)][int(u)] + au*depth_map[int(v)][int(u)+1];
+				d2 = (1-au)*depth_map[int(v)+1][int(u)] + au*depth_map[int(v)+1][int(u)+1];
+				d = (1-av)*d1+av*d2;
+			}
+
+			Vector3d c_pt(x(i*15+13),x(i*15+14),depth_map[x(i*15+14)][x(i*15+13)]);
+			glPushMatrix();
+			glTranslatev(c_pt.val);
+			DrawSphere(2);
+			glPopMatrix();
+
+			glBegin(GL_LINES);
+			glVertex3dv(graph.draw_nodes[i].val);
+			glVertex3dv(c_pt.val);
+			glEnd();
+		}
+// 			cout<<"num of near edge pts"<<endl;
+// 			cout<<indx.size()<<endl<<endl;
+		glColor3ub(0,0,255);
+		for (int i = 0; i<indx.size(); ++i)
+		{
+			glPushMatrix();
+			glTranslatev(target_dmap.nodes[indx[i]]);
+			DrawSphere(3);
+			glPopMatrix();
+		}
+// 		glColor4ub(120,30,180,150);
+// 		for (int i = 0; i<target_dmap.nodes.size(); ++i)
+// 		{
+// 			glPushMatrix();
+// 			glTranslatev(target_dmap.nodes[i]);
+// 			DrawSphere(1.7);
+// 			glPopMatrix();
+// 		}
+	}
+
 }
 
 void Viewer::drawWithNames()
@@ -950,110 +908,18 @@ void Viewer::LoadC( const char* filename, std::vector<std::vector<std::vector<do
 
 void Viewer::InitGeo()
 {
-	cout<< "init geodesic mesh...";
-	// load points and faces data
-	
-
-	//std::vector<double> points;
-	std::vector<double> points(&templ.points()[0][0], &templ.points()[templ.n_vertices()][0]);
-
-	std::vector<unsigned> faces;
-	faces.reserve(templ.n_faces()*3);
-
-	HCCLMesh::ConstFaceIter fIt(templ.faces_begin()), fEnd(templ.faces_end());
-	HCCLMesh::ConstFaceVertexIter fvIt;
-	for (; fIt!=fEnd; ++fIt)
-	{
-		fvIt = templ.cfv_iter(fIt.handle());
-		faces.push_back(fvIt.handle().idx());
-		faces.push_back((++fvIt).handle().idx());
-		faces.push_back((++fvIt).handle().idx());
-	}
-
-	// creat mesh data
-	mesh.initialize_mesh_data(points, faces);		//create internal mesh data structure including edges
-
-	cout<<"finished!"<<endl;
+	is_geo = false;
+	templ.InitGeo();
+	source_vertex_index = 0;
+	target_vertex_index = 800;
 }
 
-void Viewer::GeodesicTem()
+void Viewer::Propagate()
 {
 	is_geo = true;
-	source_vertex_index = 0;
-	target_vertex_index = 5;
-	double g_length = GeodesicTem(mesh, source_vertex_index, target_vertex_index, geodesic_path);
-	updateGL();
-}
-
-double Viewer::GeodesicTem( geodesic::Mesh& mesh, const int src_indx, const int trgt_indx, std::vector<Vector3d>& path )
-{
-	path.clear();
-
-	// creat exact algorithm
-	geodesic::GeodesicAlgorithmExact algorithm(&mesh);	//create exact algorithm for the mesh
-
-	// creat source
-	geodesic::SurfacePoint source(&mesh.vertices()[src_indx]);
-	std::vector<geodesic::SurfacePoint> all_sources(1,source);	//in general, there could be multiple sources, but now we have only one
-
-	//create target
-	geodesic::SurfacePoint target(&mesh.vertices()[trgt_indx]);
-		
-	//find a single source-target path	
-	std::vector<geodesic::SurfacePoint> path_tem;	//geodesic path is a sequence of SurfacePoints
-	algorithm.geodesic(source, target, path_tem);
-// 	algorithm.print_statistics();
-
-	path.resize(path_tem.size());
-	for(unsigned i = 0; i<path.size(); ++i)
-		path[i] = Vector3d(path_tem[i].xyz());
-
-
-	//cover the whole mesh
-	vector<double> geo_distance(mesh.vertices().size());
-	algorithm.propagate(all_sources);
-// 	algorithm.print_statistics();
-
-	for(unsigned i=0; i<mesh.vertices().size(); ++i)
-	{
-		geodesic::SurfacePoint p(&mesh.vertices()[i]);
-		unsigned best_source = algorithm.best_source(p, geo_distance[i]);		//for a given surface point, find closets source and distance to this source
-	}
+	templ.Propagate(source_vertex_index);
+	templ.GetGeodesicDistanceAll();
 	
-	double mx_dist = geo_distance[std::max_element(geo_distance.begin(), geo_distance.end())-geo_distance.begin()];
-	mx_dist = 5;
-
-	auto HSVtoRGB = [](double h, double s, double v, double *r, double *g, double *b)
-	{
-		if( s == 0 ) {
-			*r = *g = *b = v;
-			return;
-		}
-		h /= 60;
-		int i = (int)h;
-		double f = h - i;
-		double p = v*(1-s);
-		double q = v*(1-s*f);
-		double t = v*(1-s*(1-f));
-		switch(i) {
-		case 0: *r = v; *g = t; *b = p; break;
-		case 1: *r = q; *g = v; *b = p; break;
-		case 2: *r = p; *g = v; *b = t; break;
-		case 3: *r = p; *g = q; *b = v; break;
-		case 4: *r = t; *g = p; *b = v; break;
-		default:*r = v; *g = p; *b = q; break;
-		}
-	};
-
-	HCCLMesh::VertexIter vit(templ.vertices_begin()), vit_end(templ.vertices_end());
-	for (; vit!=vit_end; ++vit)
-	{
-		double h = geo_distance[vit.handle().idx()]/mx_dist*360;
-		double r,g,b;
-		HSVtoRGB(h,1,1, &r, &g, &b);
-		templ.set_color(vit,HCCLMesh::Color(r, g, b));		
-	}
-
-// 	print_info_about_path(path_tem);
-	return length(path_tem);
+	double g_length = templ.GetGeodesicPath(target_vertex_index);
+	updateGL();
 }

@@ -24,12 +24,10 @@
 
 
 CTriMesh::CTriMesh(void)
-	: kdtree(NULL)
-{
-	// 	cog[0] = cog[1] = cog[2] = 0.f;
-	// 	bounding_box_min[0] = bounding_box_min[1] = bounding_box_min[2] = 0.f;
-	// 	bounding_box_max[0] = bounding_box_max[1] = bounding_box_max[2] = 0.f;
-	// 	bounding_sphere_rad = 0.f;
+	: kdtree(NULL), bounding_sphere_rad(0.f)
+{	
+	render_flag[0] = true;
+	render_flag[1] =  render_flag[2] = false;
 }
 
 CTriMesh::~CTriMesh(void)
@@ -93,12 +91,100 @@ bool CTriMesh::Write(std::string strFilePath) const
 	return true;
 }
 
-void CTriMesh::Render( renderMethod nMethod /*= RENDER_SMOOTH*/, unsigned int nFlag /*= 0*/ ) const
+// void CTriMesh::Render( renderMethod nMethod /*= RENDER_SMOOTH*/, unsigned int nFlag /*= 0*/ ) const
+// {
+// 	glShadeModel(GL_SMOOTH);
+// 
+// 	if (nMethod == RENDER_SMOOTH) RenderSmooth(nFlag);
+// 	else if (nMethod == RENDER_FLAT) RenderFlat(nFlag);
+// 	else if (nMethod == RENDER_POINTS) RenderPoints(nFlag);
+// 	else if (nMethod == RENDER_WIRE) RenderWireframe(nFlag);
+// }
+
+
+void CTriMesh::Render( bool isSmooth /*= true*/, bool isVertexColor /*= false*/ )
 {
-	if (nMethod == RENDER_SMOOTH) RenderSmooth(nFlag);
-	else if (nMethod == RENDER_FLAT) RenderFlat(nFlag);
-	else if (nMethod == RENDER_POINTS) RenderPoints(nFlag);
-	else if (nMethod == RENDER_WIRE) RenderWireframe(nFlag);
+	if(n_vertices() <= 0) return;
+
+	// render flat or smooth
+	if (isSmooth) glShadeModel(GL_SMOOTH);
+	else glShadeModel(GL_FLAT);
+
+
+	if (isVertexColor) // draw with vertex color
+	{
+		glEnableClientState(GL_COLOR_ARRAY);
+		glColorPointer(3, GL_DOUBLE, 0, vertex_colors());
+	}
+
+	glEnableClientState(GL_VERTEX_ARRAY);
+	glVertexPointer(3, GL_DOUBLE, 0, points());	
+
+
+	if (render_flag[RENDER_FACES])
+	{
+		glEnableClientState(GL_NORMAL_ARRAY);
+		glNormalPointer(GL_DOUBLE, 0, vertex_normals());
+
+		HCCLMesh::ConstFaceIter fIt(faces_begin()), fEnd(faces_end());
+		HCCLMesh::ConstFaceVertexIter fvIt;
+		
+		glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+		glBegin(GL_TRIANGLES);
+		for (; fIt!=fEnd; ++fIt)
+		{
+			fvIt = cfv_iter(fIt.handle());
+			glArrayElement(fvIt.handle().idx());
+			glArrayElement((++fvIt).handle().idx());
+			glArrayElement((++fvIt).handle().idx());
+		}
+		glEnd();
+	}
+
+	glDisable(GL_LIGHTING);
+	glColor3d(0,0,0);
+	if (render_flag[RENDER_POINTS])
+	{
+		glEnable(GL_POLYGON_OFFSET_POINT);
+		glPolygonOffset(-2.0f, -2.0f);
+
+		glPolygonMode(GL_FRONT_AND_BACK, GL_POINT);
+		glDrawArrays(GL_POINTS, 0, n_vertices());
+
+		glDisable(GL_POLYGON_OFFSET_POINT);
+	}
+
+	if (render_flag[RENDER_WIRE])
+	{
+		HCCLMesh::ConstFaceIter fIt(faces_begin()), fEnd(faces_end());
+		HCCLMesh::ConstFaceVertexIter fvIt;
+
+		glEnable(GL_POLYGON_OFFSET_LINE);
+		glPolygonOffset(-1.0f, -1.0f);
+
+		glEnable(GL_LINE_SMOOTH);
+		glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+		glBegin(GL_TRIANGLES);
+		for (; fIt!=fEnd; ++fIt)
+		{
+			fvIt = cfv_iter(fIt.handle());
+			glArrayElement(fvIt.handle().idx());
+			glArrayElement((++fvIt).handle().idx());
+			glArrayElement((++fvIt).handle().idx());
+		}
+		glEnd();
+		glDisable(GL_LINE_SMOOTH);
+
+		glDisable(GL_POLYGON_OFFSET_LINE);
+	}
+	glEnable(GL_LIGHTING);
+
+	glDisableClientState(GL_NORMAL_ARRAY);
+	glDisableClientState(GL_VERTEX_ARRAY);
+	glDisableClientState(GL_COLOR_ARRAY);
+
+	glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+	glShadeModel(GL_SMOOTH);
 }
 
 void CTriMesh::RenderPoints(GLuint nFlag/* = 0*/) const
@@ -111,9 +197,8 @@ void CTriMesh::RenderPoints(GLuint nFlag/* = 0*/) const
 	glBegin(GL_POINTS);
 	for(; vit != vEnd; ++vit)
 		glVertex3dv(&point(vit)[0]);
-	glEnd();
+	glEnd();	
 }
-
 void CTriMesh::RenderWireframe(GLuint nFlag/* = 0*/) const
 {
 	if(n_vertices() <= 0)
@@ -143,7 +228,6 @@ void CTriMesh::RenderWireframe(GLuint nFlag/* = 0*/) const
 
 	glDisable(GL_POLYGON_OFFSET_LINE);
 }
-
 void CTriMesh::RenderFlat(GLuint nFlag/* = 0*/) const
 {
 // 	HCCLMesh::FaceIter f_it, f_end(faces_end());
@@ -168,14 +252,13 @@ void CTriMesh::RenderFlat(GLuint nFlag/* = 0*/) const
 // 		glEnd();
 // 	}
 }
-
 void CTriMesh::RenderSmooth(GLuint nFlag/* = 0*/) const
 {
 	if(n_vertices() <= 0)
 		return;
 		
 	glEnableClientState(GL_VERTEX_ARRAY);
-	glVertexPointer(3, GL_DOUBLE, 0, points());
+	glVertexPointer(3, GL_DOUBLE, 0, points());	
 	
 	glEnableClientState(GL_NORMAL_ARRAY);
 	glNormalPointer(GL_DOUBLE, 0, vertex_normals());	
@@ -183,7 +266,8 @@ void CTriMesh::RenderSmooth(GLuint nFlag/* = 0*/) const
 	HCCLMesh::ConstFaceIter fIt(faces_begin()), fEnd(faces_end());
 	HCCLMesh::ConstFaceVertexIter fvIt;
 
-	glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+	
+	glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);	
 	glBegin(GL_TRIANGLES);
 	for (; fIt!=fEnd; ++fIt)
 	{
@@ -564,6 +648,8 @@ void CTriMesh::SampleUniform( int nSamples, std::vector<Vector3d>& samples, std:
 	std::cout << (e_tic - s_tic)/(double)CLOCKS_PER_SEC << "sec"<< std::endl;
 }
 
+
+// kd tree
 inline double tac( IndexedPoint indexed_pt, size_t k ) { return indexed_pt.first[k]; }
 void CTriMesh::BuildKDTree(void)
 {
@@ -646,3 +732,105 @@ void CTriMesh::DestroyKDTree(void)
 	}
 }
 
+
+// geodesic
+void CTriMesh::InitGeo()
+{
+	geo_path.clear();
+	geodesic_dist.clear();
+	max_geodesic_dist = 0;
+
+	std::cout<< "init geodesic mesh...";
+
+	// load points and faces data
+	std::vector<double> points(&points()[0][0], &points()[n_vertices()][0]);
+
+	std::vector<unsigned> faces;
+	faces.reserve(n_faces()*3);
+
+	HCCLMesh::ConstFaceIter fIt(faces_begin()), fEnd(faces_end());
+	HCCLMesh::ConstFaceVertexIter fvIt;
+	for (; fIt!=fEnd; ++fIt)
+	{
+		fvIt = cfv_iter(fIt.handle());
+		faces.push_back(fvIt.handle().idx());
+		faces.push_back((++fvIt).handle().idx());
+		faces.push_back((++fvIt).handle().idx());
+	}
+
+	// creat mesh data
+	mesh.initialize_mesh_data(points, faces);
+	algorithm_exact.setmesh(&mesh);
+
+	std::cout<<"finished!"<<std::endl;
+}
+
+void CTriMesh::Propagate( const int single_source )
+{
+	std::vector<geodesic::SurfacePoint> all_sources(1, &mesh.vertices()[single_source]);
+	algorithm_exact.propagate(all_sources);
+}
+void CTriMesh::Propagate( const std::vector<int>& from )
+{
+	std::vector<geodesic::SurfacePoint> all_sources(from.size());
+	for (int i = 0; i<from.size(); ++i)
+		all_sources[i] = geodesic::SurfacePoint(&mesh.vertices()[from[i]]);
+
+	algorithm_exact.propagate(all_sources);
+}
+
+void CTriMesh::GetGeodesicDistance( const int to, double& dist )
+{
+	geodesic::SurfacePoint p(&mesh.vertices()[to]);
+	algorithm_exact.best_source(p, dist);
+}
+void CTriMesh::GetGeodesicDistanceAll()
+{
+	max_geodesic_dist = 0;
+	geodesic_dist.resize(mesh.vertices().size());
+	for(unsigned i=0; i<mesh.vertices().size(); ++i)
+	{		
+		GetGeodesicDistance(i, geodesic_dist[i]);
+
+		if (geodesic_dist[i]!=geodesic::GEODESIC_INF)
+			max_geodesic_dist = geodesic_dist[i] > max_geodesic_dist ? geodesic_dist[i] : max_geodesic_dist;
+	}
+
+	HCCLMesh::VertexIter vit(vertices_begin()), vit_end(vertices_end());
+	for (; vit!=vit_end; ++vit)
+	{
+		double h = geodesic_dist[vit.handle().idx()]/max_geodesic_dist*360;
+		double r,g,b;
+		HSV2RGB(h,1,1, &r, &g, &b);
+		set_color(vit,HCCLMesh::Color(r, g, b));		
+	}
+}
+double CTriMesh::GetGeodesicPath( const int to )
+{
+	geodesic::SurfacePoint p(&mesh.vertices()[to]);
+	algorithm_exact.trace_back(p, geo_path);
+
+	return length(geo_path);
+}
+
+void CTriMesh::HSV2RGB( double h, double s, double v, double *r, double *g, double *b )
+{
+	if( s == 0 ) {
+		*r = *g = *b = v;
+		return;
+	}
+	h /= 60;
+	int i = (int)h;
+	double f = h - i;
+	double p = v*(1-s);
+	double q = v*(1-s*f);
+	double t = v*(1-s*(1-f));
+	switch(i) {
+	case 0: *r = v; *g = t; *b = p; break;
+	case 1: *r = q; *g = v; *b = p; break;
+	case 2: *r = p; *g = v; *b = t; break;
+	case 3: *r = p; *g = q; *b = v; break;
+	case 4: *r = t; *g = p; *b = v; break;
+	default:*r = v; *g = p; *b = q; break;
+	}
+}

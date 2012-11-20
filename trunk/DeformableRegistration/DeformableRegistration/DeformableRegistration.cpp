@@ -18,7 +18,7 @@ DeformableRegistration::DeformableRegistration(QWidget *parent, Qt::WFlags flags
 
 	connect(ui.actionPoint, SIGNAL(triggered()), this, SLOT(OnUpdateGL()));
 	connect(ui.actionWireframe, SIGNAL(triggered()), this, SLOT(OnUpdateGL()));
-	connect(ui.actionFlat, SIGNAL(triggered()), this, SLOT(OnUpdateGL()));
+	connect(ui.actionFace, SIGNAL(triggered()), this, SLOT(OnUpdateGL()));
 	connect(ui.actionSmooth, SIGNAL(triggered()), this, SLOT(OnUpdateGL()));
 	connect(ui.actionTemplateVisible, SIGNAL(triggered()), this, SLOT(OnUpdateGL()));
 
@@ -202,7 +202,7 @@ void DeformableRegistration::OnToolsRunHaoLi()
 
 void DeformableRegistration::OnToolsGeodesic()
 {
-	ui.view->GeodesicTem();
+	ui.view->Propagate();
 }
 
 void DeformableRegistration::OnInitGeo()
