@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>600</width>
-    <height>520</height>
+    <width>667</width>
+    <height>585</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -28,7 +28,7 @@
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>600</width>
+     <width>667</width>
      <height>21</height>
     </rect>
    </property>
@@ -89,7 +89,7 @@
      </property>
      <addaction name="actionPoint"/>
      <addaction name="actionWireframe"/>
-     <addaction name="actionFlat"/>
+     <addaction name="actionFace"/>
      <addaction name="actionSmooth"/>
      <addaction name="separator"/>
      <addaction name="actionTemplateVisible"/>
@@ -130,9 +130,12 @@
    <addaction name="actionNew"/>
    <addaction name="separator"/>
    <addaction name="actionOpenTemplate"/>
+   <addaction name="separator"/>
    <addaction name="actionPoint"/>
    <addaction name="actionWireframe"/>
+   <addaction name="actionFace"/>
    <addaction name="actionSmooth"/>
+   <addaction name="separator"/>
    <addaction name="actionTemplateVisible"/>
    <addaction name="separator"/>
    <addaction name="actionOpenTarget"/>
@@ -219,12 +222,18 @@
     <string>Wireframe</string>
    </property>
   </action>
-  <action name="actionFlat">
+  <action name="actionFace">
    <property name="checkable">
     <bool>true</bool>
    </property>
+   <property name="checked">
+    <bool>true</bool>
+   </property>
    <property name="text">
-    <string>Flat</string>
+    <string>Face</string>
+   </property>
+   <property name="toolTip">
+    <string>Face</string>
    </property>
   </action>
   <action name="actionSmooth">

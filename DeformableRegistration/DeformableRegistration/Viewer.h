@@ -91,17 +91,11 @@ public:
 	//////////////////
 	// Geodesic part//
 	//////////////////
-	geodesic::Mesh mesh;
-
 	bool is_geo;
 	unsigned source_vertex_index;
 	unsigned target_vertex_index;
-	Vector3d src_pt, trgt_pt;
-	std::vector<Vector3d> geodesic_path;
-	std::vector<Vector3d> geodesic_color;
 	void InitGeo();
-	void GeodesicTem();
-	double GeodesicTem(geodesic::Mesh& mesh, const int src_indx, const int trgt_indx, std::vector<Vector3d>& path);
+	void Propagate();
 };
 
 #endif // VIEWER_H
