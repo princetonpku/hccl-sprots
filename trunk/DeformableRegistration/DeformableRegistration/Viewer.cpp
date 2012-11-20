@@ -166,9 +166,9 @@ void Viewer::draw()
 	// Draw Template Mesh
 	if(pParentDlg->ui.actionTemplateVisible->isChecked())
 	{
-		templ.render_flag[CTriMesh::renderMethod::RENDER_FACES] = pParentDlg->ui.actionFace->isChecked();
-		templ.render_flag[CTriMesh::renderMethod::RENDER_WIRE] = pParentDlg->ui.actionWireframe->isChecked();
-		templ.render_flag[CTriMesh::renderMethod::RENDER_POINTS] = pParentDlg->ui.actionPoint->isChecked();
+		templ.render_flag[CTriMesh::RENDER_FACES] = pParentDlg->ui.actionFace->isChecked();
+		templ.render_flag[CTriMesh::RENDER_WIRE] = pParentDlg->ui.actionWireframe->isChecked();
+		templ.render_flag[CTriMesh::RENDER_POINTS] = pParentDlg->ui.actionPoint->isChecked();
 
 		glColor3ub(255, 190, 100);
 		templ.Render(pParentDlg->ui.actionSmooth->isChecked(), is_geo);
