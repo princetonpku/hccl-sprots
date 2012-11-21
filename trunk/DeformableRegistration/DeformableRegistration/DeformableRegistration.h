@@ -25,6 +25,8 @@ private slots:
 	void OnFileSaveTarget();
 	void OnFileExit();
 
+	void OnScreenCapture();
+
 	void OnToolsDecimate();
 	void OnToolsSample_Random();			// Random Sampling
 	void OnToolsSample_Quad();				// Sampling by Quadric Fitting
