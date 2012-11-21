@@ -32,18 +32,12 @@
     <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
     <Import Project="PropertySheets\OpenMesh-2.3.props" />
     <Import Project="PropertySheets\QGLViewer-2.3.17.props" />
-    <Import Project="PropertySheets\Boost-1.49.0.props" />
-    <Import Project="PropertySheets\libKDTree.props" />
-    <Import Project="PropertySheets\Geodesic.props" />
     <Import Project="PropertySheets\Armadillo-3.2.4.props" />
   </ImportGroup>
   <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="PropertySheets">
     <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
     <Import Project="PropertySheets\OpenMesh-2.3.props" />
     <Import Project="PropertySheets\QGLViewer-2.3.17.props" />
-    <Import Project="PropertySheets\Boost-1.49.0.props" />
-    <Import Project="PropertySheets\libKDTree.props" />
-    <Import Project="PropertySheets\Geodesic.props" />
     <Import Project="PropertySheets\Armadillo-3.2.4.props" />
   </ImportGroup>
   <PropertyGroup Label="UserMacros" />
