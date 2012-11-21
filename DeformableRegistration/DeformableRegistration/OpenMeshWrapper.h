@@ -28,7 +28,9 @@ struct HCCLTraits : public OpenMesh::DefaultTraits
 typedef OpenMesh::TriMesh_ArrayKernelT<HCCLTraits> HCCLMesh;
 
 
-/* 3rd party libraries */
+
+
+// 3rd party libraries
 // libkdtree++
 #include "kdtree.hpp"
 typedef std::pair<HCCLMesh::Point, int> IndexedPoint;
@@ -38,8 +40,9 @@ typedef KDTree::KDTree<3, IndexedPoint, std::pointer_to_binary_function<IndexedP
 #include <geodesic_algorithm_exact.h>
 
 
-#define TM_SAMPLE_UNIFORM_DART 0x0001
 
+
+#define TM_SAMPLE_UNIFORM_DART 0x0001
 static Vector3d cast_to_Vector3d(const HCCLMesh::Point& pt) { return Vector3d(pt[0], pt[1], pt[2]); }
 
 class CTriMesh : public HCCLMesh
@@ -64,15 +67,18 @@ public:
 public:
 	enum renderMethod {RENDER_FACES, RENDER_POINTS, RENDER_WIRE};
 	bool render_flag[3];
+
+	void SetRenderColor(unsigned char* color);
+	void SetRenderColor(unsigned char r, unsigned char g, unsigned char b, unsigned char a = 255);
 	void Render(bool isSmooth = true, bool isVertexColor = false);
 	void Draw_BoundingBox(void);
 	void Draw_BoundingSphere(void); // <-- TODO
 
-protected:
-	void RenderPoints(unsigned int nFlag = 0) const;
-	void RenderWireframe(unsigned int nFlag = 0) const;
-	void RenderFlat(unsigned int nFlag = 0) const;
-	void RenderSmooth(unsigned int nFlag = 0) const; 	
+private:
+	unsigned char render_color[4];
+	void RenderPoints() const;
+	void RenderWireframe() const;
+	void RenderFace() const;
 
 //////////////////////////////////////////////////////////////////////////
 // Geometric properties													//
@@ -119,6 +125,7 @@ public:
 	void FindClosestPoint(Vector3d ref, int* idx, int n = 1, Vector3d* pt = NULL) const;
 	void DestroyKDTree(void);
 	
+
 //////////////////////////////////////////////////////////////////////////
 // Geodesic Part														//
 //////////////////////////////////////////////////////////////////////////

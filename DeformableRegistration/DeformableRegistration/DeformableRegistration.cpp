@@ -15,7 +15,9 @@ DeformableRegistration::DeformableRegistration(QWidget *parent, Qt::WFlags flags
 	connect(ui.actionSaveTemplate, SIGNAL(triggered()), this, SLOT(OnFileSaveTemplate()));
 	connect(ui.actionSaveTarget, SIGNAL(triggered()), this, SLOT(OnFileSaveTarget()));
 	connect(ui.actionExit, SIGNAL(triggered()), this, SLOT(OnFileExit()));
-
+	
+	connect(ui.actionScreencapture, SIGNAL(triggered()), this, SLOT(OnScreenCapture()));
+	
 	connect(ui.actionPoint, SIGNAL(triggered()), this, SLOT(OnUpdateGL()));
 	connect(ui.actionWireframe, SIGNAL(triggered()), this, SLOT(OnUpdateGL()));
 	connect(ui.actionFace, SIGNAL(triggered()), this, SLOT(OnUpdateGL()));
@@ -213,4 +215,9 @@ void DeformableRegistration::OnInitGeo()
 void DeformableRegistration::OnUpdateGL()
 {
 	ui.view->updateGL();
+}
+
+void DeformableRegistration::OnScreenCapture()
+{
+	ui.view->saveSnapshot();
 }

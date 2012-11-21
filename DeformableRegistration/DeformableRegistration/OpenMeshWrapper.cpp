@@ -28,6 +28,11 @@ CTriMesh::CTriMesh(void)
 {	
 	render_flag[0] = true;
 	render_flag[1] =  render_flag[2] = false;
+	
+	render_color[0] = 255;
+	render_color[1] = 190;
+	render_color[2] = 100;
+	render_color[3] = 255;
 }
 
 CTriMesh::~CTriMesh(void)
@@ -91,31 +96,39 @@ bool CTriMesh::Write(std::string strFilePath) const
 	return true;
 }
 
-// void CTriMesh::Render( renderMethod nMethod /*= RENDER_SMOOTH*/, unsigned int nFlag /*= 0*/ ) const
-// {
-// 	glShadeModel(GL_SMOOTH);
-// 
-// 	if (nMethod == RENDER_SMOOTH) RenderSmooth(nFlag);
-// 	else if (nMethod == RENDER_FLAT) RenderFlat(nFlag);
-// 	else if (nMethod == RENDER_POINTS) RenderPoints(nFlag);
-// 	else if (nMethod == RENDER_WIRE) RenderWireframe(nFlag);
-// }
-
-
+void CTriMesh::SetRenderColor( unsigned char* color )
+{
+	int l =  (sizeof(color) / sizeof(color[0]));
+	if (l==4) memcpy(render_color, color, sizeof(unsigned char)*l);
+	else if(l==3)
+	{
+		memcpy(render_color, color, sizeof(unsigned char)*l);
+		render_color[3] = 255;
+	}
+}
+void CTriMesh::SetRenderColor( unsigned char r, unsigned char g, unsigned char b, unsigned char a /*= 255*/ )
+{
+	render_color[0] = r; render_color[1] = g; render_color[2] = b;
+	render_color[3] = a;
+}
 void CTriMesh::Render( bool isSmooth /*= true*/, bool isVertexColor /*= false*/ )
 {
 	if(n_vertices() <= 0) return;
 
+	glEnable(GL_BLEND);
+	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+
 	// render flat or smooth
 	if (isSmooth) glShadeModel(GL_SMOOTH);
 	else glShadeModel(GL_FLAT);
-
 
 	if (isVertexColor) // draw with vertex color
 	{
 		glEnableClientState(GL_COLOR_ARRAY);
 		glColorPointer(3, GL_DOUBLE, 0, vertex_colors());
 	}
+	else glColor4ubv(render_color);
+	
 
 	glEnableClientState(GL_VERTEX_ARRAY);
 	glVertexPointer(3, GL_DOUBLE, 0, points());	
@@ -125,149 +138,50 @@ void CTriMesh::Render( bool isSmooth /*= true*/, bool isVertexColor /*= false*/ 
 	{
 		glEnableClientState(GL_NORMAL_ARRAY);
 		glNormalPointer(GL_DOUBLE, 0, vertex_normals());
-
-		HCCLMesh::ConstFaceIter fIt(faces_begin()), fEnd(faces_end());
-		HCCLMesh::ConstFaceVertexIter fvIt;
-		
-		glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
-		glBegin(GL_TRIANGLES);
-		for (; fIt!=fEnd; ++fIt)
-		{
-			fvIt = cfv_iter(fIt.handle());
-			glArrayElement(fvIt.handle().idx());
-			glArrayElement((++fvIt).handle().idx());
-			glArrayElement((++fvIt).handle().idx());
-		}
-		glEnd();
+		RenderFace();
+		glDisableClientState(GL_NORMAL_ARRAY);
 	}
 
+	if(!isVertexColor) glColor4ub(0,0,0,render_color[3]);
+	
 	glDisable(GL_LIGHTING);
-	glColor3d(0,0,0);
-	if (render_flag[RENDER_POINTS])
-	{
-		glEnable(GL_POLYGON_OFFSET_POINT);
-		glPolygonOffset(-2.0f, -2.0f);
-
-		glPolygonMode(GL_FRONT_AND_BACK, GL_POINT);
-		glDrawArrays(GL_POINTS, 0, n_vertices());
-
-		glDisable(GL_POLYGON_OFFSET_POINT);
-	}
-
-	if (render_flag[RENDER_WIRE])
-	{
-		HCCLMesh::ConstFaceIter fIt(faces_begin()), fEnd(faces_end());
-		HCCLMesh::ConstFaceVertexIter fvIt;
-
-		glEnable(GL_POLYGON_OFFSET_LINE);
-		glPolygonOffset(-1.0f, -1.0f);
-
-		glEnable(GL_LINE_SMOOTH);
-		glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
-		glBegin(GL_TRIANGLES);
-		for (; fIt!=fEnd; ++fIt)
-		{
-			fvIt = cfv_iter(fIt.handle());
-			glArrayElement(fvIt.handle().idx());
-			glArrayElement((++fvIt).handle().idx());
-			glArrayElement((++fvIt).handle().idx());
-		}
-		glEnd();
-		glDisable(GL_LINE_SMOOTH);
-
-		glDisable(GL_POLYGON_OFFSET_LINE);
-	}
+	if (render_flag[RENDER_POINTS]) RenderPoints();
+	if (render_flag[RENDER_WIRE]) RenderWireframe();
 	glEnable(GL_LIGHTING);
 
-	glDisableClientState(GL_NORMAL_ARRAY);
 	glDisableClientState(GL_VERTEX_ARRAY);
 	glDisableClientState(GL_COLOR_ARRAY);
+	
+	glDisable(GL_BLEND);
 
 	glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
 	glShadeModel(GL_SMOOTH);
 }
 
-void CTriMesh::RenderPoints(GLuint nFlag/* = 0*/) const
+void CTriMesh::RenderPoints() const
 {
-	if(n_vertices() <= 0)
-		return;
+	glPointSize(3.f);
+	glEnable(GL_POINT_SMOOTH);
+	glEnable(GL_POLYGON_OFFSET_POINT);
+	glPolygonOffset(-3.0f, -3.0f);
 
-	HCCLMesh::ConstVertexIter vit(vertices_begin()), vEnd(vertices_end());
+	glPolygonMode(GL_FRONT_AND_BACK, GL_POINT);
+	glDrawArrays(GL_POINTS, 0, n_vertices());
 
-	glBegin(GL_POINTS);
-	for(; vit != vEnd; ++vit)
-		glVertex3dv(&point(vit)[0]);
-	glEnd();	
+	glDisable(GL_POLYGON_OFFSET_POINT);
+	glEnable(GL_POINT_SMOOTH);
+	glPointSize(1.f);
 }
-void CTriMesh::RenderWireframe(GLuint nFlag/* = 0*/) const
+void CTriMesh::RenderWireframe() const
 {
-	if(n_vertices() <= 0)
-		return;
-
 	HCCLMesh::ConstFaceIter fIt(faces_begin()), fEnd(faces_end());
 	HCCLMesh::ConstFaceVertexIter fvIt;
 
 	glEnable(GL_POLYGON_OFFSET_LINE);
 	glPolygonOffset(-1.0f, -1.0f);
-	
-	
-	glEnable(GL_LINE_SMOOTH);				
-	glPolygonMode(GL_FRONT_AND_BACK,  GL_LINE);
-	glBegin(GL_TRIANGLES);
-	for (; fIt!=fEnd; ++fIt)
-	{
-		fvIt = cfv_iter(fIt.handle()); 
-		glVertex3dv( &point(fvIt)[0] );
-		++fvIt;
-		glVertex3dv( &point(fvIt)[0] );
-		++fvIt;
-		glVertex3dv( &point(fvIt)[0] );
-	}
-	glEnd();
-	glDisable(GL_LINE_SMOOTH);
 
-	glDisable(GL_POLYGON_OFFSET_LINE);
-}
-void CTriMesh::RenderFlat(GLuint nFlag/* = 0*/) const
-{
-// 	HCCLMesh::FaceIter f_it, f_end(faces_end());
-// 	HCCLMesh::FaceVertexIter fv_it, fv_end;
-// 	HCCLMesh::Point temp;
-// 	HCCLMesh::Normal normal;
-// 
-// 	glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
-// 	HCCLMesh::Color clr;
-// 	for(f_it = faces_begin(); f_it != f_end; ++f_it)
-// 	{		
-// 		normal = this->normal(f_it);
-// 		glBegin(GL_TRIANGLES);
-// 		glNormal3f(normal[0], normal[1], normal[2]);
-// 		for(fv_it = fv_iter(f_it); fv_it; ++fv_it)
-// 		{
-// 			temp = point(fv_it);
-// 			clr = color(fv_it);
-// 			glColor3ub( clr[0], clr[1], clr[2] );
-// 			glVertex3f( temp[0], temp[1], temp[2] );
-// 		}
-// 		glEnd();
-// 	}
-}
-void CTriMesh::RenderSmooth(GLuint nFlag/* = 0*/) const
-{
-	if(n_vertices() <= 0)
-		return;
-		
-	glEnableClientState(GL_VERTEX_ARRAY);
-	glVertexPointer(3, GL_DOUBLE, 0, points());	
-	
-	glEnableClientState(GL_NORMAL_ARRAY);
-	glNormalPointer(GL_DOUBLE, 0, vertex_normals());	
-
-	HCCLMesh::ConstFaceIter fIt(faces_begin()), fEnd(faces_end());
-	HCCLMesh::ConstFaceVertexIter fvIt;
-
-	
-	glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);	
+	glEnable(GL_LINE_SMOOTH);
+	glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
 	glBegin(GL_TRIANGLES);
 	for (; fIt!=fEnd; ++fIt)
 	{
@@ -277,11 +191,25 @@ void CTriMesh::RenderSmooth(GLuint nFlag/* = 0*/) const
 		glArrayElement((++fvIt).handle().idx());
 	}
 	glEnd();
+	glDisable(GL_LINE_SMOOTH);
 
-	glDisableClientState(GL_VERTEX_ARRAY);
-	glDisableClientState(GL_NORMAL_ARRAY);
+	glDisable(GL_POLYGON_OFFSET_LINE);
 }
-
+void CTriMesh::RenderFace() const
+{
+	HCCLMesh::ConstFaceIter fIt(faces_begin()), fEnd(faces_end());
+	HCCLMesh::ConstFaceVertexIter fvIt;		
+	glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+	glBegin(GL_TRIANGLES);
+	for (; fIt!=fEnd; ++fIt)
+	{
+		fvIt = cfv_iter(fIt.handle());
+		glArrayElement(fvIt.handle().idx());
+		glArrayElement((++fvIt).handle().idx());
+		glArrayElement((++fvIt).handle().idx());
+	}
+	glEnd();
+}
 void CTriMesh::Draw_BoundingBox( void )
 {
 	float x = bounding_box_min[0];
