@@ -22,12 +22,13 @@
 #define max(a, b) (((a) > (b))? (a) : (b))
 #endif
 
+using namespace std;
 
 CTriMesh::CTriMesh(void)
-	: kdtree(NULL), bounding_sphere_rad(0.f)
+	: kdtree(NULL), bounding_sphere_rad(0.f), geo_isinit(false), geo_ispropagate(false)
 {	
-	render_flag[0] = true;
-	render_flag[1] =  render_flag[2] = false;
+	render_flag[RENDER_FACES] = true;
+	render_flag[RENDER_POINTS] =  render_flag[RENDER_WIRE] = false;
 	
 	render_color[0] = 255;
 	render_color[1] = 190;
@@ -47,6 +48,8 @@ void CTriMesh::Clear()
 	bounding_box_min[0] = bounding_box_min[1] = bounding_box_min[2] = 0.f;
 	bounding_box_max[0] = bounding_box_max[1] = bounding_box_max[2] = 0.f;
 	bounding_sphere_rad = 0.f;
+
+	ClearGeo();
 }
 
 bool CTriMesh::Read(std::string strFilePath)
@@ -103,10 +106,13 @@ void CTriMesh::SetRenderColor( unsigned char* color )
 	else if(l==3)
 	{
 		memcpy(render_color, color, sizeof(unsigned char)*l);
-		render_color[3] = 255;
 	}
 }
-void CTriMesh::SetRenderColor( unsigned char r, unsigned char g, unsigned char b, unsigned char a /*= 255*/ )
+void CTriMesh::SetRenderColor( unsigned char r, unsigned char g, unsigned char b )
+{
+	render_color[0] = r; render_color[1] = g; render_color[2] = b;
+}
+void CTriMesh::SetRenderColor( unsigned char r, unsigned char g, unsigned char b, unsigned char a )
 {
 	render_color[0] = r; render_color[1] = g; render_color[2] = b;
 	render_color[3] = a;
@@ -125,7 +131,7 @@ void CTriMesh::Render( bool isSmooth /*= true*/, bool isVertexColor /*= false*/ 
 	if (isVertexColor) // draw with vertex color
 	{
 		glEnableClientState(GL_COLOR_ARRAY);
-		glColorPointer(3, GL_DOUBLE, 0, vertex_colors());
+		glColorPointer(4, GL_DOUBLE, 0, vertex_colors());
 	}
 	else glColor4ubv(render_color);
 	
@@ -663,10 +669,12 @@ void CTriMesh::DestroyKDTree(void)
 
 // geodesic
 void CTriMesh::InitGeo()
-{
+{	
+	if(!n_vertices()) return;	
+
 	geo_path.clear();
-	geodesic_dist.clear();
-	max_geodesic_dist = 0;
+	geo_dist.clear();
+	geo_maxdist = 0;
 
 	std::cout<< "init geodesic mesh...";
 
@@ -687,57 +695,118 @@ void CTriMesh::InitGeo()
 	}
 
 	// creat mesh data
-	mesh.initialize_mesh_data(points, faces);
-	algorithm_exact.setmesh(&mesh);
+	geo_mesh.initialize_mesh_data(points, faces);
+	geo_algorithm_exact.setmesh(&geo_mesh);
 
 	std::cout<<"finished!"<<std::endl;
+	geo_isinit = true;
 }
-
+void CTriMesh::ClearGeo()
+{
+	geo_path.clear();
+	geo_dist.clear();
+	geo_maxdist = 0;
+	geo_isinit = geo_ispropagate = false;
+}
 void CTriMesh::Propagate( const int single_source )
 {
-	std::vector<geodesic::SurfacePoint> all_sources(1, &mesh.vertices()[single_source]);
-	algorithm_exact.propagate(all_sources);
+	if (!geo_isinit)
+	{
+		cout << "initialize geodesic mesh first!" << endl;
+		return;
+	}
+	std::vector<geodesic::SurfacePoint> all_sources(1, &geo_mesh.vertices()[single_source]);
+	geo_algorithm_exact.propagate(all_sources);
+
+	geo_ispropagate = true;
 }
 void CTriMesh::Propagate( const std::vector<int>& from )
 {
+	if (!geo_isinit)
+	{
+		cout<< "initialize geodesic mesh first!" << endl;
+		return;
+	}
+
 	std::vector<geodesic::SurfacePoint> all_sources(from.size());
 	for (int i = 0; i<from.size(); ++i)
-		all_sources[i] = geodesic::SurfacePoint(&mesh.vertices()[from[i]]);
+		all_sources[i] = geodesic::SurfacePoint(&geo_mesh.vertices()[from[i]]);
 
-	algorithm_exact.propagate(all_sources);
+	geo_algorithm_exact.propagate(all_sources);
+	
+	geo_ispropagate = true;
 }
 
 void CTriMesh::GetGeodesicDistance( const int to, double& dist )
 {
-	geodesic::SurfacePoint p(&mesh.vertices()[to]);
-	algorithm_exact.best_source(p, dist);
+	if (!geo_ispropagate)
+	{
+		cout << "propagate first!" << endl;
+		return;
+	}
+
+	geodesic::SurfacePoint p(&geo_mesh.vertices()[to]);
+	geo_algorithm_exact.best_source(p, dist);
 }
 void CTriMesh::GetGeodesicDistanceAll()
 {
-	max_geodesic_dist = 0;
-	geodesic_dist.resize(mesh.vertices().size());
-	for(unsigned i=0; i<mesh.vertices().size(); ++i)
-	{		
-		GetGeodesicDistance(i, geodesic_dist[i]);
+	if (!geo_ispropagate)
+	{
+		cout << "propagate first!" << endl;
+		return;
+	}
 
-		if (geodesic_dist[i]!=geodesic::GEODESIC_INF)
-			max_geodesic_dist = geodesic_dist[i] > max_geodesic_dist ? geodesic_dist[i] : max_geodesic_dist;
+	geo_maxdist = 0;
+	geo_dist.resize(geo_mesh.vertices().size());
+	for(unsigned i=0; i<geo_mesh.vertices().size(); ++i)
+	{		
+		GetGeodesicDistance(i, geo_dist[i]);
+
+		if (geo_dist[i]!=geodesic::GEODESIC_INF)
+			geo_maxdist = geo_dist[i] > geo_maxdist ? geo_dist[i] : geo_maxdist;
+	}
+}
+void CTriMesh::SetVertexColor2GeodesicDist()
+{
+	if(geo_dist.empty())
+	{
+		cout << "get geodesic distances of all vertexes first!" << endl;
+		return;
 	}
 
 	HCCLMesh::VertexIter vit(vertices_begin()), vit_end(vertices_end());
 	for (; vit!=vit_end; ++vit)
 	{
-		double h = geodesic_dist[vit.handle().idx()]/max_geodesic_dist*360;
+		double h = geo_dist[vit.handle().idx()]/geo_maxdist*360;
 		double r,g,b;
 		HSV2RGB(h,1,1, &r, &g, &b);
-		set_color(vit,HCCLMesh::Color(r, g, b));		
+		set_color(vit,HCCLMesh::Color(r, g, b, render_color[3]));		
 	}
 }
+
 double CTriMesh::GetGeodesicPath( const int to )
 {
-	geodesic::SurfacePoint p(&mesh.vertices()[to]);
-	algorithm_exact.trace_back(p, geo_path);
+	if (!geo_ispropagate)
+	{
+		cout << "propagate first!" << endl;
+		return 0;
+	}
 
+	geodesic::SurfacePoint p(&geo_mesh.vertices()[to]);
+	geo_algorithm_exact.trace_back(p, geo_path);
+
+	return length(geo_path);
+}
+double CTriMesh::GetGeodesicPath( const int from, const int to )
+{
+	if (!geo_isinit)
+	{
+		cout << "initialize geodesic mesh first!" << endl;
+		return 0;
+	}
+
+	geo_ispropagate = false;
+	geo_algorithm_exact.geodesic(geodesic::SurfacePoint(&geo_mesh.vertices()[from]), geodesic::SurfacePoint(&geo_mesh.vertices()[from]), geo_path);
 	return length(geo_path);
 }
 

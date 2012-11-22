@@ -188,6 +188,12 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="blas_win32_MT.dll" />
+    <None Include="icons\snapshot-0000.png" />
+    <None Include="icons\snapshot-0001.png" />
+    <None Include="icons\snapshot-0002.png" />
+    <None Include="icons\snapshot-0003.png" />
+    <None Include="icons\snapshot-0004.png" />
+    <None Include="icons\snapshot-0005.png" />
     <None Include="lapack_win32_MT.dll" />
     <None Include="PropertySheets\Armadillo-3.2.4.props" />
     <None Include="PropertySheets\Boost-1.49.0.props" />

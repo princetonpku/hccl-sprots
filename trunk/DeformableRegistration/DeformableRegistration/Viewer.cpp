@@ -81,28 +81,23 @@ void Viewer::draw()
 	{
 		double r = templ.GetBoundingSphereRadius();
 
+		// source vertex
 		glColor4ub(255,100,190,200);
 		glPushMatrix();
 		glTranslatev(templ.point(templ.vertex_handle(source_vertex_index)).data());
 		DrawSphere(0.02*r);
 		glPopMatrix();
 
+		// target vertex
 		glColor4ub(100,190,255,200);
 		glPushMatrix();
 		glTranslatev(templ.point(templ.vertex_handle(target_vertex_index)).data());
 		DrawSphere(0.02*r);
 		glPopMatrix();
 		
+		// geodesic path
 		glColor3ub(255,0,0);
-// 		for (int i = 0; i<templ.geo_path.size(); ++i)
-// 		{
-// 			glPushMatrix();
-// 			glTranslatev(templ.geo_path[i].xyz());
-// 			DrawSphere(0.007*r);
-// 			glPopMatrix();
-// 		}
-// 		glEnable(GL_LINE_SMOOTH);
-
+		glEnable(GL_LINE_SMOOTH);
 		glDisable(GL_LIGHTING);
 		glLineWidth(3.0);
 		glBegin(GL_LINE_STRIP);
@@ -114,7 +109,6 @@ void Viewer::draw()
 		glDisable(GL_LINE_SMOOTH);
 		glLineWidth(1.0);
 		glEnable(GL_LIGHTING);
-
 	}
 
 
@@ -170,18 +164,18 @@ void Viewer::draw()
 		templ.render_flag[CTriMesh::RENDER_WIRE] = pParentDlg->ui.actionWireframe->isChecked();
 		templ.render_flag[CTriMesh::RENDER_POINTS] = pParentDlg->ui.actionPoint->isChecked();
 
-		glColor3ub(255, 190, 100);
+		templ.SetRenderColor(255,190,100);
 		templ.Render(pParentDlg->ui.actionSmooth->isChecked(), is_geo);
 	}
 
 	// Draw Target Mesh
 	if(pParentDlg->ui.actionTargetVisible->isChecked())
 	{
-// 		if(onEmbededDeformation)
-// 			glColor3ub(255, 190, 100);
-// 		else
-// 			glColor3ub(100, 190, 255);
-// 		target.Render();
+		if(onEmbededDeformation)
+			target.SetRenderColor(255, 190, 100);
+		else
+			target.SetRenderColor(100, 190, 255);
+		target.Render();
 	}
 
 	// Draw selected points
@@ -919,7 +913,8 @@ void Viewer::Propagate()
 	is_geo = true;
 	templ.Propagate(source_vertex_index);
 	templ.GetGeodesicDistanceAll();
-	
+	templ.SetVertexColor2GeodesicDist();
+
 	double g_length = templ.GetGeodesicPath(target_vertex_index);
 	updateGL();
 }
