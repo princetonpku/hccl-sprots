@@ -45,6 +45,9 @@
     <Filter Include="PropertySheet">
       <UniqueIdentifier>{34526c7c-ca56-41bc-a8dd-54aaba5f8467}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Resource Files\Icons">
+      <UniqueIdentifier>{3a693da6-6edd-45e4-9be3-c23a9cdb07b0}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="main.cpp">
@@ -153,6 +156,24 @@
     </None>
     <None Include="PropertySheets\Armadillo-3.2.4.props">
       <Filter>PropertySheet</Filter>
+    </None>
+    <None Include="icons\snapshot-0000.png">
+      <Filter>Resource Files\Icons</Filter>
+    </None>
+    <None Include="icons\snapshot-0005.png">
+      <Filter>Resource Files\Icons</Filter>
+    </None>
+    <None Include="icons\snapshot-0003.png">
+      <Filter>Resource Files\Icons</Filter>
+    </None>
+    <None Include="icons\snapshot-0004.png">
+      <Filter>Resource Files\Icons</Filter>
+    </None>
+    <None Include="icons\snapshot-0001.png">
+      <Filter>Resource Files\Icons</Filter>
+    </None>
+    <None Include="icons\snapshot-0002.png">
+      <Filter>Resource Files\Icons</Filter>
     </None>
   </ItemGroup>
 </Project>

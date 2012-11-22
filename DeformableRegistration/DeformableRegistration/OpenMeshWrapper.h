@@ -12,7 +12,7 @@ struct HCCLTraits : public OpenMesh::DefaultTraits
 {
 	typedef OpenMesh::Vec3d Point;
 	typedef OpenMesh::Vec3d Normal;
-	typedef OpenMesh::Vec3d Color;
+	typedef OpenMesh::Vec4d Color;
 
 	VertexAttributes (
 		OpenMesh::Attributes::Status |
@@ -69,7 +69,10 @@ public:
 	bool render_flag[3];
 
 	void SetRenderColor(unsigned char* color);
-	void SetRenderColor(unsigned char r, unsigned char g, unsigned char b, unsigned char a = 255);
+	void SetRenderColor(unsigned char r, unsigned char g, unsigned char b);
+	void SetRenderColor(unsigned char r, unsigned char g, unsigned char b, unsigned char a);
+	void SetTransparency(unsigned char t){render_color[3] = t;};	// 0<t<255 
+	void SetTransparency(double t){render_color[3] = t*255;};		// 0<t<1
 	void Render(bool isSmooth = true, bool isVertexColor = false);
 	void Draw_BoundingBox(void);
 	void Draw_BoundingSphere(void); // <-- TODO
@@ -123,25 +126,28 @@ public:
 	HCCLKDTree* kdtree;
 	void BuildKDTree(void);
 	void FindClosestPoint(Vector3d ref, int* idx, int n = 1, Vector3d* pt = NULL) const;
-	void DestroyKDTree(void);
-	
+	void DestroyKDTree(void);	
 
 //////////////////////////////////////////////////////////////////////////
 // Geodesic Part														//
 //////////////////////////////////////////////////////////////////////////
 public:
-	geodesic::Mesh mesh;
-	geodesic::GeodesicAlgorithmExact algorithm_exact;
-
+	geodesic::Mesh						geo_mesh;
+	geodesic::GeodesicAlgorithmExact	geo_algorithm_exact;
 	std::vector<geodesic::SurfacePoint> geo_path;
-	std::vector<double> geodesic_dist;
-	double max_geodesic_dist;
+	std::vector<double>					geo_dist;
+	double								geo_maxdist;
+	bool								geo_isinit;
+	bool								geo_ispropagate;
 
 	void InitGeo();
+	void ClearGeo();
 	void Propagate(const int single_source);
 	void Propagate(const std::vector<int>& from);	
 	void GetGeodesicDistanceAll();
+	void SetVertexColor2GeodesicDist();
 	double GetGeodesicPath(const int to);
+	double GetGeodesicPath(const int from, const int to);
 
 private:	
 	void GetGeodesicDistance(const int to, double& dist);

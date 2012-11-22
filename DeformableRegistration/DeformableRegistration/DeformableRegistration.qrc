@@ -1,11 +1,11 @@
 <RCC>
   <qresource prefix="DeformableRegistration"/>
   <qresource prefix="Icons">
-    <file>snapshot-0000.jpg</file>
-    <file>snapshot-0001.jpg</file>
-    <file>snapshot-0002.jpg</file>
-    <file>snapshot-0003.jpg</file>
-    <file>snapshot-0004.jpg</file>
-    <file>snapshot-0005.jpg</file>
+    <file>icons/snapshot-0000.png</file>
+    <file>icons/snapshot-0001.png</file>
+    <file>icons/snapshot-0002.png</file>
+    <file>icons/snapshot-0003.png</file>
+    <file>icons/snapshot-0004.png</file>
+    <file>icons/snapshot-0005.png</file>
   </qresource>
 </RCC>

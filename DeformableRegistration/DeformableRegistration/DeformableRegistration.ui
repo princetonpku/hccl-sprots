@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>758</width>
-    <height>637</height>
+    <width>774</width>
+    <height>658</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -32,7 +32,7 @@
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>758</width>
+     <width>774</width>
      <height>21</height>
     </rect>
    </property>
@@ -252,12 +252,11 @@
    <property name="checkable">
     <bool>true</bool>
    </property>
-   <property name="icon">
-    <iconset resource="DeformableRegistration.qrc">
-     <normaloff>:/Icons/snapshot-0005.jpg</normaloff>:/Icons/snapshot-0005.jpg</iconset>
-   </property>
    <property name="text">
     <string>Wireframe</string>
+   </property>
+   <property name="iconVisibleInMenu">
+    <bool>false</bool>
    </property>
   </action>
   <action name="actionFace">
