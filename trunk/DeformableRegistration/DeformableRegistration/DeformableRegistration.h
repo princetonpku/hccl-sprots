@@ -27,6 +27,8 @@ private slots:
 
 	void OnScreenCapture();
 
+	void UpdateViewState();
+
 	void OnToolsDecimate();
 	void OnToolsSample_Random();			// Random Sampling
 	void OnToolsSample_Quad();				// Sampling by Quadric Fitting
@@ -34,9 +36,6 @@ private slots:
 	void OnToolsEmbededDeformation();
 
 	void OnViewDeformationGraph();
-
-	void OnUpdateGL();
-
 	/////////////////
 	// Hoa Li part //
 	/////////////////
