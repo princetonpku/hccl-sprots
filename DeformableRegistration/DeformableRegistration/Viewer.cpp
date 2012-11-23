@@ -159,14 +159,7 @@ void Viewer::draw()
 
 	// Draw Template Mesh
 	if(pParentDlg->ui.actionTemplateVisible->isChecked())
-	{
-		templ.render_flag[CTriMesh::RENDER_FACES] = pParentDlg->ui.actionFace->isChecked();
-		templ.render_flag[CTriMesh::RENDER_WIRE] = pParentDlg->ui.actionWireframe->isChecked();
-		templ.render_flag[CTriMesh::RENDER_POINTS] = pParentDlg->ui.actionPoint->isChecked();
-
-		templ.SetRenderColor(255,190,100);
 		templ.Render(pParentDlg->ui.actionSmooth->isChecked(), is_geo);
-	}
 
 	// Draw Target Mesh
 	if(pParentDlg->ui.actionTargetVisible->isChecked())
@@ -903,6 +896,7 @@ void Viewer::LoadC( const char* filename, std::vector<std::vector<std::vector<do
 void Viewer::InitGeo()
 {
 	is_geo = false;
+	templ.ClearGeo();
 	templ.InitGeo();
 	source_vertex_index = 0;
 	target_vertex_index = 800;

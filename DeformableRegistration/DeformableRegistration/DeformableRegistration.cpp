@@ -18,17 +18,17 @@ DeformableRegistration::DeformableRegistration(QWidget *parent, Qt::WFlags flags
 	
 	connect(ui.actionScreencapture, SIGNAL(triggered()), this, SLOT(OnScreenCapture()));
 	
-	connect(ui.actionPoint, SIGNAL(triggered()), this, SLOT(OnUpdateGL()));
-	connect(ui.actionWireframe, SIGNAL(triggered()), this, SLOT(OnUpdateGL()));
-	connect(ui.actionFace, SIGNAL(triggered()), this, SLOT(OnUpdateGL()));
-	connect(ui.actionSmooth, SIGNAL(triggered()), this, SLOT(OnUpdateGL()));
-	connect(ui.actionTemplateVisible, SIGNAL(triggered()), this, SLOT(OnUpdateGL()));
+	connect(ui.actionPoint, SIGNAL(triggered()), this, SLOT(UpdateViewState()));
+	connect(ui.actionWireframe, SIGNAL(triggered()), this, SLOT(UpdateViewState()));
+	connect(ui.actionFace, SIGNAL(triggered()), this, SLOT(UpdateViewState()));
+	connect(ui.actionSmooth, SIGNAL(triggered()), this, SLOT(UpdateViewState()));
+	connect(ui.actionTemplateVisible, SIGNAL(triggered()), this, SLOT(UpdateViewState()));
 
-	connect(ui.actionPoints_2, SIGNAL(triggered()), this, SLOT(OnUpdateGL()));
-	connect(ui.actionWireframe_2, SIGNAL(triggered()), this, SLOT(OnUpdateGL()));
-	connect(ui.actionFlat_2, SIGNAL(triggered()), this, SLOT(OnUpdateGL()));
-	connect(ui.actionSmooth_2, SIGNAL(triggered()), this, SLOT(OnUpdateGL()));
-	connect(ui.actionTargetVisible, SIGNAL(triggered()), this, SLOT(OnUpdateGL()));
+	connect(ui.actionPoints_2, SIGNAL(triggered()), this, SLOT(UpdateViewState()));
+	connect(ui.actionWireframe_2, SIGNAL(triggered()), this, SLOT(UpdateViewState()));
+	connect(ui.actionFace_2, SIGNAL(triggered()), this, SLOT(UpdateViewState()));
+	connect(ui.actionSmooth_2, SIGNAL(triggered()), this, SLOT(UpdateViewState()));
+	connect(ui.actionTargetVisible, SIGNAL(triggered()), this, SLOT(UpdateViewState()));
 
 	connect(ui.actionDecimate, SIGNAL(triggered()), this, SLOT(OnToolsDecimate()));
 	connect(ui.actionRANDOM, SIGNAL(triggered()), this, SLOT(OnToolsSample_Random()));
@@ -212,12 +212,20 @@ void DeformableRegistration::OnInitGeo()
 	ui.view->InitGeo();
 }
 
-void DeformableRegistration::OnUpdateGL()
-{
-	ui.view->updateGL();
-}
-
 void DeformableRegistration::OnScreenCapture()
 {
 	ui.view->saveSnapshot();
+}
+
+void DeformableRegistration::UpdateViewState()
+{
+	ui.view->templ.render_flag[CTriMesh::RENDER_POINTS] = ui.actionPoint->isChecked();
+	ui.view->templ.render_flag[CTriMesh::RENDER_WIRE] = ui.actionWireframe->isChecked();
+	ui.view->templ.render_flag[CTriMesh::RENDER_FACES] = ui.actionFace->isChecked();
+
+	ui.view->target.render_flag[CTriMesh::RENDER_POINTS] = ui.actionPoints_2->isChecked();
+	ui.view->target.render_flag[CTriMesh::RENDER_WIRE] = ui.actionWireframe_2->isChecked();
+	ui.view->target.render_flag[CTriMesh::RENDER_FACES] = ui.actionFace_2->isChecked();
+
+	ui.view->updateGL();
 }
