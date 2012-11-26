@@ -35,6 +35,7 @@ void DeformationGraph::Clear(void)
 	mesh = NULL;
 	nodes.clear();
 	edges.clear();
+	infulence_radius.clear();
 	nodes_neighboring_nodes.clear();
 }
 
@@ -126,36 +127,6 @@ void DeformationGraph::BuildGraph( const std::vector<std::vector<double>>& dmap,
 	}
 
 	BuildKDTree();
-
-// 	int cnt = 0;
-// 	std::vector<int> idx(k);
-// 	std::for_each(mesh->vertices_begin(), mesh->vertices_end(), [&](const HCCLMesh::VertexHandle& vh){
-// 		HCCLMesh::Point pt = mesh->point(vh);
-// 		FindClosestPoint(Vector3d(pt[0], pt[1], pt[2]), &idx[0], k);
-// 		std::sort(idx.begin(), idx.end());
-// 		for(int i = 0; i < k-1; i++)
-// 		{
-// 			for(int j = i+1; j < k; j++)
-// 			{
-// 				edges.push_back(Vector2i(idx[i], idx[j]));
-// 			}
-// 		}
-// 	});
-// 
-// 	std::sort(edges.begin(), edges.end(), [&](Vector2i& ei, Vector2i& ej)->bool{
-// 		if(ei[0] < ej[0]) return true;
-// 		else if(ei[0] > ej[0]) return false;
-// 		else return (ei[1] < ej[1]);
-// 	});
-// 	std::vector<Vector2i>::iterator it = std::unique(edges.begin(), edges.end());
-// 	edges.erase(it, edges.end());	
-// 
-// 	nodes_neighboring_nodes.resize(nodes.size());
-// 	std::for_each(edges.begin(), edges.end(), [&](Vector2i& e){
-// 		nodes_neighboring_nodes[e[0]].push_back(e[1]);
-// 		nodes_neighboring_nodes[e[1]].push_back(e[0]);
-// 	});
-
 }
 
 void DeformationGraph::FindClosestPoint(Vector3d ref, int* idx, int n/* = 1*/, Vector3d* pt/* = NULL*/) const

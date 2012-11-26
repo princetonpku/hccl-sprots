@@ -47,9 +47,11 @@ protected:
 	CTriMesh* mesh;
 
 public:
-	std::vector<Vector3d> nodes;
-	std::vector<Vector3d> draw_nodes;
-	std::vector<Vector2i> edges;
+	std::vector<Vector3d>	nodes;
+	std::vector<Vector3d>	draw_nodes;
+	std::vector<double>		infulence_radius;
+	std::vector<Vector2i>	edges;
+
 	std::vector<std::vector<int>> nodes_neighboring_nodes;
 	
 	std::vector<int> node_indxes;
