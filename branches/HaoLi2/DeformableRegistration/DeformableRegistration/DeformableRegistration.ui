@@ -1,0 +1,424 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>DeformableRegistrationClass</class>
+ <widget class="QMainWindow" name="DeformableRegistrationClass">
+  <property name="geometry">
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>606</width>
+    <height>560</height>
+   </rect>
+  </property>
+  <property name="windowTitle">
+   <string>DeformableRegistration</string>
+  </property>
+  <widget class="QWidget" name="centralWidget">
+   <layout class="QHBoxLayout" name="horizontalLayout">
+    <item>
+     <widget class="Viewer" name="view" native="true">
+      <property name="minimumSize">
+       <size>
+        <width>400</width>
+        <height>400</height>
+       </size>
+      </property>
+     </widget>
+    </item>
+   </layout>
+  </widget>
+  <widget class="QMenuBar" name="menuBar">
+   <property name="geometry">
+    <rect>
+     <x>0</x>
+     <y>0</y>
+     <width>606</width>
+     <height>21</height>
+    </rect>
+   </property>
+   <widget class="QMenu" name="menuFile">
+    <property name="title">
+     <string>File</string>
+    </property>
+    <addaction name="actionNew"/>
+    <addaction name="separator"/>
+    <addaction name="actionOpenTemplate"/>
+    <addaction name="actionOpenTarget"/>
+    <addaction name="separator"/>
+    <addaction name="actionSaveTemplate"/>
+    <addaction name="actionSaveTarget"/>
+    <addaction name="separator"/>
+    <addaction name="actionExit"/>
+   </widget>
+   <widget class="QMenu" name="menuHaoLi2008">
+    <property name="title">
+     <string>Hao Li 2008</string>
+    </property>
+    <addaction name="separator"/>
+    <addaction name="actionInitalize_HaoLi"/>
+    <addaction name="actionStart_HaoLi"/>
+   </widget>
+   <widget class="QMenu" name="menuCommon_Tools">
+    <property name="title">
+     <string>Common Tools</string>
+    </property>
+    <widget class="QMenu" name="menuSampling">
+     <property name="title">
+      <string>Sampling</string>
+     </property>
+     <addaction name="actionRANDOM"/>
+     <addaction name="actionQuadricFitting"/>
+     <addaction name="actionDartThrowing"/>
+    </widget>
+    <addaction name="actionDecimate"/>
+    <addaction name="menuSampling"/>
+    <addaction name="actionEmbededDeformation"/>
+    <addaction name="actionInitGeo"/>
+    <addaction name="actionGeodesic"/>
+   </widget>
+   <widget class="QMenu" name="menuView">
+    <property name="title">
+     <string>View</string>
+    </property>
+    <widget class="QMenu" name="menuProjection">
+     <property name="title">
+      <string>Projection</string>
+     </property>
+     <addaction name="actionPerspective"/>
+     <addaction name="actionOrthogonal"/>
+    </widget>
+    <widget class="QMenu" name="menuTemplateMesh">
+     <property name="title">
+      <string>Template Mesh</string>
+     </property>
+     <addaction name="actionPoint"/>
+     <addaction name="actionWireframe"/>
+     <addaction name="actionFace"/>
+     <addaction name="actionSmooth"/>
+     <addaction name="separator"/>
+     <addaction name="actionTemplateVisible"/>
+     <addaction name="separator"/>
+     <addaction name="actionTransparent"/>
+    </widget>
+    <widget class="QMenu" name="menuTarget_Mesh">
+     <property name="title">
+      <string>Target Mesh</string>
+     </property>
+     <addaction name="actionPoints_2"/>
+     <addaction name="actionWireframe_2"/>
+     <addaction name="actionFace_2"/>
+     <addaction name="actionSmooth_2"/>
+     <addaction name="separator"/>
+     <addaction name="actionTargetVisible"/>
+     <addaction name="separator"/>
+     <addaction name="actionTransparent_2"/>
+    </widget>
+    <addaction name="menuProjection"/>
+    <addaction name="separator"/>
+    <addaction name="menuTemplateMesh"/>
+    <addaction name="menuTarget_Mesh"/>
+    <addaction name="actionDeformationGraph"/>
+   </widget>
+   <addaction name="menuFile"/>
+   <addaction name="menuView"/>
+   <addaction name="menuCommon_Tools"/>
+   <addaction name="menuHaoLi2008"/>
+  </widget>
+  <widget class="QToolBar" name="FileToolBar">
+   <property name="windowTitle">
+    <string>File</string>
+   </property>
+   <property name="iconSize">
+    <size>
+     <width>45</width>
+     <height>50</height>
+    </size>
+   </property>
+   <property name="toolButtonStyle">
+    <enum>Qt::ToolButtonIconOnly</enum>
+   </property>
+   <property name="floatable">
+    <bool>true</bool>
+   </property>
+   <attribute name="toolBarArea">
+    <enum>TopToolBarArea</enum>
+   </attribute>
+   <attribute name="toolBarBreak">
+    <bool>false</bool>
+   </attribute>
+   <addaction name="actionNew"/>
+   <addaction name="actionOpenTemplate"/>
+   <addaction name="actionOpenTarget"/>
+  </widget>
+  <widget class="QStatusBar" name="statusBar"/>
+  <widget class="QToolBar" name="ViewToolBar">
+   <property name="windowTitle">
+    <string>View</string>
+   </property>
+   <property name="iconSize">
+    <size>
+     <width>40</width>
+     <height>40</height>
+    </size>
+   </property>
+   <attribute name="toolBarArea">
+    <enum>TopToolBarArea</enum>
+   </attribute>
+   <attribute name="toolBarBreak">
+    <bool>false</bool>
+   </attribute>
+   <addaction name="actionPoint"/>
+   <addaction name="actionWireframe"/>
+   <addaction name="actionSmooth"/>
+   <addaction name="actionFace"/>
+   <addaction name="separator"/>
+   <addaction name="actionTemplateVisible"/>
+  </widget>
+  <widget class="QToolBar" name="ToolstoolBar">
+   <property name="windowTitle">
+    <string>Tools</string>
+   </property>
+   <attribute name="toolBarArea">
+    <enum>TopToolBarArea</enum>
+   </attribute>
+   <attribute name="toolBarBreak">
+    <bool>true</bool>
+   </attribute>
+   <addaction name="actionDecimate"/>
+   <addaction name="actionInitGeo"/>
+   <addaction name="actionGeodesic"/>
+   <addaction name="actionScreencapture"/>
+  </widget>
+  <action name="actionNew">
+   <property name="text">
+    <string>New</string>
+   </property>
+  </action>
+  <action name="actionOpenTemplate">
+   <property name="text">
+    <string>Open Template...</string>
+   </property>
+  </action>
+  <action name="actionOpenTarget">
+   <property name="text">
+    <string>Open Target...</string>
+   </property>
+  </action>
+  <action name="actionSaveTemplate">
+   <property name="text">
+    <string>Save Template...</string>
+   </property>
+  </action>
+  <action name="actionSaveTarget">
+   <property name="text">
+    <string>Save Target...</string>
+   </property>
+  </action>
+  <action name="actionExit">
+   <property name="text">
+    <string>Exit</string>
+   </property>
+  </action>
+  <action name="actionDecimate">
+   <property name="text">
+    <string>Decimate</string>
+   </property>
+  </action>
+  <action name="actionRANDOM">
+   <property name="text">
+    <string>RANDOM</string>
+   </property>
+  </action>
+  <action name="actionQuadricFitting">
+   <property name="text">
+    <string>Quadric_Fitting</string>
+   </property>
+  </action>
+  <action name="actionDartThrowing">
+   <property name="text">
+    <string>Dart_Throwing</string>
+   </property>
+  </action>
+  <action name="actionEmbededDeformation">
+   <property name="text">
+    <string>Embeded Deformation</string>
+   </property>
+  </action>
+  <action name="actionPerspective">
+   <property name="text">
+    <string>Perspective</string>
+   </property>
+  </action>
+  <action name="actionOrthogonal">
+   <property name="text">
+    <string>Orthogonal</string>
+   </property>
+  </action>
+  <action name="actionPoint">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>Points</string>
+   </property>
+  </action>
+  <action name="actionWireframe">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>Wireframe</string>
+   </property>
+   <property name="iconVisibleInMenu">
+    <bool>false</bool>
+   </property>
+  </action>
+  <action name="actionFace">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="checked">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>Face</string>
+   </property>
+   <property name="toolTip">
+    <string>Face</string>
+   </property>
+  </action>
+  <action name="actionSmooth">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="checked">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>Smooth</string>
+   </property>
+  </action>
+  <action name="actionTemplateVisible">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="checked">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>Visible</string>
+   </property>
+  </action>
+  <action name="actionTransparent">
+   <property name="text">
+    <string>Transparent...</string>
+   </property>
+  </action>
+  <action name="actionPoints_2">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>Points</string>
+   </property>
+  </action>
+  <action name="actionWireframe_2">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>Wireframe</string>
+   </property>
+  </action>
+  <action name="actionFace_2">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="checked">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>Face</string>
+   </property>
+   <property name="toolTip">
+    <string>Face</string>
+   </property>
+  </action>
+  <action name="actionSmooth_2">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>Smooth</string>
+   </property>
+  </action>
+  <action name="actionTargetVisible">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="checked">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>Visible</string>
+   </property>
+  </action>
+  <action name="actionTransparent_2">
+   <property name="text">
+    <string>Transparent...</string>
+   </property>
+  </action>
+  <action name="actionDeformationGraph">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="checked">
+    <bool>false</bool>
+   </property>
+   <property name="text">
+    <string>Deformation Graph</string>
+   </property>
+  </action>
+  <action name="actionInitalize_HaoLi">
+   <property name="text">
+    <string>Initalize</string>
+   </property>
+  </action>
+  <action name="actionStart_HaoLi">
+   <property name="text">
+    <string>Start</string>
+   </property>
+  </action>
+  <action name="actionGeodesic">
+   <property name="text">
+    <string>Geodesic</string>
+   </property>
+  </action>
+  <action name="actionInitGeo">
+   <property name="text">
+    <string>InitGeo</string>
+   </property>
+  </action>
+  <action name="actionScreencapture">
+   <property name="text">
+    <string>Screen capture</string>
+   </property>
+   <property name="toolTip">
+    <string>Screen capture</string>
+   </property>
+  </action>
+ </widget>
+ <layoutdefault spacing="6" margin="11"/>
+ <customwidgets>
+  <customwidget>
+   <class>Viewer</class>
+   <extends>QWidget</extends>
+   <header>Viewer.h</header>
+   <container>1</container>
+  </customwidget>
+ </customwidgets>
+ <resources>
+  <include location="DeformableRegistration.qrc"/>
+ </resources>
+ <connections/>
+</ui>
